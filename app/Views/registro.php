@@ -3,13 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="apple-touch-icon" sizes="180x180" href="/melofy1.png">
-    <link rel="icon" type="image/png" sizes="32x32" href="/melofy3.png">
-    <link rel="icon" type="image/png" sizes="16x16" href="/melofy2.png">
-    <link rel="manifest" href="/site.webmanifest">
-    <title>Melofy</title>
+    <title>Registro - Melofy</title>
     <style>
-        @import url('[https://fonts.googleapis.com/css2?family=Orbitron:wght@500&family=Poppins&display=swap](https://fonts.googleapis.com/css2?family=Orbitron:wght@500&family=Poppins&display=swap)');
+        @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@500&family=Poppins&display=swap');
         body {
             margin: 0;
             font-family: 'Poppins', sans-serif;
@@ -29,7 +25,7 @@
             text-align: center;
             width: 320px;
         }
-
+        
         .logo {
             font-family: 'Orbitron', sans-serif;
             font-size: 36px;
@@ -43,14 +39,14 @@
             margin-bottom: 30px;
         }
 
-        .login-form label {
+        .register-form label {
             display: block;
             text-align: left;
             margin: 10px 0 5px;
             font-size: 14px;
         }
 
-        .login-form input {
+        .register-form input {
             width: 100%;
             padding: 10px;
             border: none;
@@ -61,11 +57,11 @@
             font-size: 14px;
         }
 
-        .login-form input::placeholder {
+        .register-form input::placeholder {
             color: #999;
         }
 
-        .login-form button {
+        .register-form button {
             width: 100%;
             padding: 12px;
             background-color: #a259ff;
@@ -78,16 +74,16 @@
             transition: background 0.3s ease;
         }
 
-        .login-form button:hover {
+        .register-form button:hover {
             background-color: #c084fc;
         }
 
-        .register-text {
+        .login-text {
             margin-top: 15px;
             font-size: 13px;
         }
 
-        .register-text a {
+        .login-text a {
             color: #8a63d2;
             text-decoration: underline;
             font-weight: bold;
@@ -96,28 +92,23 @@
 </head>
 <body>
     <div class="container">
-        <h1 class="logo">Melofy</h1>
-        <h2 class="slogan">Tu ritmo, tu mundo </h2>
-        <!-- Mensaje de error, si existe -->
+        <h1 class="logo">Regístrate</h1>
+        <h2 class="slogan">Crea tu cuenta en Melofy</h2>
+
         <?php if (session()->getFlashdata('error')): ?>
             <p style="color: red;"><?= session()->getFlashdata('error') ?></p>
         <?php endif; ?>
-        <!-- Mensaje de éxito, si existe -->
-        <?php if (session()->getFlashdata('success')): ?>
-            <p style="color: green;"><?= session()->getFlashdata('success') ?></p>
-        <?php endif; ?>
         
-        <!-- Se ha agregado el action y el method al formulario -->
-        <form class="login-form" action="/login/autenticar" method="post">
+        <form class="register-form" action="/login/crear" method="post">
             <label for="username">Usuario</label>
-            <input type="text" id="username" name="username" placeholder="Ingresa tu usuario" required>
+            <input type="text" id="username" name="username" placeholder="Elige tu nombre de usuario" required>
 
             <label for="pass">Contraseña</label>
-            <input type="password" id="pass" name="pass" placeholder="Ingresa tu contraseña" required>
+            <input type="password" id="pass" name="pass" placeholder="Crea tu contraseña" required>
 
-            <button type="submit">Iniciar Sesión</button>
+            <button type="submit">Crear Cuenta</button>
 
-            <p class="register-text">¿No tienes cuenta? <a href="/registro">Regístrate</a></p>
+            <p class="login-text">¿Ya tienes una cuenta? <a href="/">Inicia Sesión</a></p>
         </form>
     </div>
 </body>
