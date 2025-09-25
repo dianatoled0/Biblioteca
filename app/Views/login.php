@@ -108,17 +108,18 @@
         <?php endif; ?>
         
         <!-- Se ha agregado el action y el method al formulario -->
-        <form class="login-form" action="/login/autenticar" method="post">
-            <label for="username">Usuario</label>
-            <input type="text" id="username" name="username" placeholder="Ingresa tu usuario" required>
+        <form class="login-form" action="<?= base_url('login/autenticar') ?>" method="post">
+    <label for="usuario">Usuario</label>
+    <input type="text" id="usuario" name="usuario" placeholder="Ingresa tu usuario" required>
 
-            <label for="pass">Contraseña</label>
-            <input type="password" id="pass" name="pass" placeholder="Ingresa tu contraseña" required>
+    <label for="pass">Contraseña</label>
+    <input type="password" id="pass" name="pass" placeholder="Ingresa tu contraseña" required>
 
-            <button type="submit">Iniciar Sesión</button>
+    <button type="submit">Iniciar Sesión</button>
 
-            <p class="register-text">¿No tienes cuenta? <a href="/registro">Regístrate</a></p>
-        </form>
+    <p class="register-text">¿No tienes cuenta? <a href="/registro">Regístrate</a></p>
+</form>
+
     </div>
 </body>
 </html>
