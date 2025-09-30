@@ -1,5 +1,4 @@
 <?php
-// model/UsuarioModel.php
 namespace App\Models;
 
 use CodeIgniter\Model;
@@ -11,7 +10,8 @@ class UsuarioModel extends Model
     protected $allowedFields = [
         'usuario', 'pass', 'id_membresia',
         'nombre', 'apellido', 'fecha_nacimiento',
-        'correo', 'fecha_inicio_membresia', 'fecha_fin_membresia'
+        'correo', 'fecha_inicio_membresia',
+        'fecha_fin_membresia', 'rol'   // 👈 agregado
     ];
 
     public function getUsuarioByUsername($usuario)
@@ -19,3 +19,4 @@ class UsuarioModel extends Model
         return $this->where('usuario', $usuario)->first();
     }
 }
+

@@ -1,5 +1,5 @@
 <?php
-// controller/Login.php
+// app/Controllers/Login.php
 namespace App\Controllers;
 
 use App\Models\UsuarioModel;
@@ -27,9 +27,17 @@ class Login extends Controller
                     'usuario'   => $datosUsuario['usuario'],
                     'nombre'    => $datosUsuario['nombre'],
                     'apellido'  => $datosUsuario['apellido'],
+                    'rol'       => $datosUsuario['rol'],   // 👈 Guardamos el rol en sesión
                     'logged_in' => true
                 ]);
-                return redirect()->to('/panel');
+
+                // Redirige según el rol
+                if ($datosUsuario['rol'] === 'admin') {
+                    return redirect()->to('/admin');
+                } else {
+                    return redirect()->to('/panel');
+                }
+
             } else {
                 return redirect()->back()->with('error', 'Contraseña incorrecta');
             }
@@ -68,6 +76,7 @@ class Login extends Controller
             'id_membresia' => 1,
             'fecha_inicio_membresia' => date('Y-m-d'),
             'fecha_fin_membresia'    => date('Y-m-d', strtotime('+3 months')),
+            'rol' => 'usuario'   // 👈 Por defecto nuevo usuario es "usuario"
         ];
 
         if ($usuarioModel->insert($data)) {
@@ -83,6 +92,14 @@ class Login extends Controller
             return redirect()->to('/');
         }
         return view('panel');
+    }
+
+    public function admin()
+    {
+        if (!session()->get('logged_in') || session()->get('rol') !== 'admin') {
+            return redirect()->to('/');
+        }
+        return view('admin_panel');
     }
 
     public function salir()
