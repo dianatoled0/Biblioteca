@@ -33,7 +33,7 @@ $routes->setAutoRoute(false); // 👈 puedes poner true si prefieres autorouting
 $routes->get('/', 'Login::index');
 $routes->post('login/autenticar', 'Login::autenticar');
 $routes->get('panel', 'Login::panel');
-$routes->get('admin', 'Login::admin');
+$routes->get('admin', 'Login::admin', ['filter' => 'admin']);
 $routes->get('login/salir', 'Login::salir');
 
 /*

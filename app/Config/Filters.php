@@ -34,7 +34,7 @@ class Filters extends BaseFilters
 
         // 👇 nuestros filtros personalizados
         'auth'          => \App\Filters\AuthFilter::class,
-        'admin'         => \App\Filters\AdminFilter::class,
+        'admin'         => \App\Filters\AdminFilter::class, // 👈 alias para AdminFilter
     ];
 
     /**
