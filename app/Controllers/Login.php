@@ -1,14 +1,31 @@
 <?php
-// app/Controllers/Login.php
 namespace App\Controllers;
 
 use App\Models\UsuarioModel;
-use CodeIgniter\Controller;
+use App\Controllers\BaseController;
 
-class Login extends Controller
+class Login extends BaseController
 {
+    protected $usuarioModel;
+
+    public function __construct()
+    {
+        $this->usuarioModel = new UsuarioModel();
+        helper(['url', 'form', 'text']);
+    }
+
+    // Formulario de login
     public function index()
     {
+        // Si ya está logueado, redirige según rol
+        $ses = session();
+        if ($ses->get('logged_in')) {
+            if ($ses->get('rol') === 'admin') {
+                return redirect()->to('/admin');
+            }
+            return redirect()->to('/panel');
+        }
+
         return view('login');
     }
 
@@ -17,94 +34,67 @@ class Login extends Controller
         $usuario = $this->request->getPost('usuario');  
         $password = $this->request->getPost('pass');
 
-        $usuarioModel = new UsuarioModel();
-        $datosUsuario = $usuarioModel->getUsuarioByUsername($usuario);
+        $datosUsuario = $this->usuarioModel->getUsuarioByUsername($usuario);
 
         if ($datosUsuario) {
-            // Comparación usando MD5
+            // Comparación usando MD5 (según tu BD)
             if (md5($password) === $datosUsuario['pass']) {
+                // Guardar en sesión
                 session()->set([
                     'usuario'   => $datosUsuario['usuario'],
                     'nombre'    => $datosUsuario['nombre'],
                     'apellido'  => $datosUsuario['apellido'],
-                    'rol'       => $datosUsuario['rol'],   // 👈 Guardamos el rol en sesión
+                    'rol'       => $datosUsuario['rol'],
                     'logged_in' => true
                 ]);
 
-                // Redirige según el rol
                 if ($datosUsuario['rol'] === 'admin') {
                     return redirect()->to('/admin');
                 } else {
                     return redirect()->to('/panel');
                 }
-
             } else {
-                return redirect()->back()->with('error', 'Contraseña incorrecta');
+                return redirect()->back()->with('error', 'Contraseña incorrecta')->withInput();
             }
         } else {
-            return redirect()->back()->with('error', 'Usuario no encontrado');
+            return redirect()->back()->with('error', 'Usuario no encontrado')->withInput();
         }
     }
 
-    public function registro()
-    {
-        return view('registro');
-    }
-
-    public function crear()
-    {
-        $usuario = $this->request->getPost('usuario');
-        $password = $this->request->getPost('pass');
-        $nombre   = $this->request->getPost('nombre');
-        $apellido = $this->request->getPost('apellido');
-        $correo   = $this->request->getPost('correo');
-        $fecha_nacimiento = $this->request->getPost('fecha_nacimiento'); // opcional
-
-        $usuarioModel = new UsuarioModel();
-
-        if ($usuarioModel->getUsuarioByUsername($usuario)) {
-            return redirect()->back()->with('error', 'El nombre de usuario ya existe.');
-        }
-
-        $data = [
-            'usuario' => $usuario,
-            'pass' => md5($password), // guardado como MD5
-            'nombre' => $nombre,
-            'apellido' => $apellido,
-            'correo' => $correo,
-            'fecha_nacimiento' => $fecha_nacimiento,
-            'id_membresia' => 1,
-            'fecha_inicio_membresia' => date('Y-m-d'),
-            'fecha_fin_membresia'    => date('Y-m-d', strtotime('+3 months')),
-            'rol' => 'usuario'   // 👈 Por defecto nuevo usuario es "usuario"
-        ];
-
-        if ($usuarioModel->insert($data)) {
-            return redirect()->to('/')->with('success', 'Registro exitoso. Ahora puedes iniciar sesión.');
-        } else {
-            return redirect()->back()->with('error', 'No se pudo crear el usuario. Inténtalo de nuevo.');
-        }
-    }
-
+    // Panel para usuarios comunes (solo accesible si está logueado)
     public function panel()
     {
-        if (!session()->get('logged_in')) {
+        // Protección por filtro o por chequeo adicional
+        if (! session()->get('logged_in')) {
             return redirect()->to('/');
         }
+
         return view('panel');
     }
 
+    // Panel admin (ruta protegida por filtro admin)
     public function admin()
     {
-        if (!session()->get('logged_in') || session()->get('rol') !== 'admin') {
-            return redirect()->to('/');
+        // La protección principal la hace el filtro Admin.
+        // Aquí hacemos una verificación por si accede directamente.
+        if (! session()->get('logged_in') || session()->get('rol') !== 'admin') {
+            return redirect()->to('/')->with('error', 'Acceso denegado.');
         }
-        return view('admin_panel');
+
+        // Pasar datos de sesión a la vista si quieres
+        $data = [
+            'nombre'   => session()->get('nombre'),
+            'apellido' => session()->get('apellido'),
+            'usuario'  => session()->get('usuario')
+        ];
+
+        return view('admin/dashboard', $data);
     }
 
     public function salir()
     {
         session()->destroy();
-        return redirect()->to('/');
+        return redirect()->to('/')->with('success', 'Sesión cerrada.');
     }
 }
+

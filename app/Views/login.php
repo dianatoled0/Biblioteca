@@ -117,7 +117,6 @@
 
     <button type="submit">Iniciar Sesión</button>
 
-    <p class="register-text">¿No tienes cuenta? <a href="/registro">Regístrate</a></p>
 </form>
 
     </div>
