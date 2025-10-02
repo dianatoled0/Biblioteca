@@ -2,97 +2,72 @@
 
 namespace Config;
 
-use CodeIgniter\Config\Filters as BaseFilters;
-use CodeIgniter\Filters\Cors;
-use CodeIgniter\Filters\CSRF;
-use CodeIgniter\Filters\DebugToolbar;
-use CodeIgniter\Filters\ForceHTTPS;
-use CodeIgniter\Filters\Honeypot;
-use CodeIgniter\Filters\InvalidChars;
-use CodeIgniter\Filters\PageCache;
-use CodeIgniter\Filters\PerformanceMetrics;
-use CodeIgniter\Filters\SecureHeaders;
+use CodeIgniter\Config\BaseConfig;
 
-class Filters extends BaseFilters
+class Filters extends BaseConfig
 {
     /**
-     * Configures aliases for Filter classes to
-     * make reading things nicer and simpler.
+     * Configuración de alias para los filtros.
      *
-     * @var array<string, class-string|list<class-string>>
+     * @var array<string, class-string>
      */
-    public array $aliases = [
-        'csrf'          => CSRF::class,
-        'toolbar'       => DebugToolbar::class,
-        'honeypot'      => Honeypot::class,
-        'invalidchars'  => InvalidChars::class,
-        'secureheaders' => SecureHeaders::class,
-        'cors'          => Cors::class,
-        'forcehttps'    => ForceHTTPS::class,
-        'pagecache'     => PageCache::class,
-        'performance'   => PerformanceMetrics::class,
+    public $aliases = [
+        'csrf'   => \CodeIgniter\Filters\CSRF::class,
+        'honeypot' => \CodeIgniter\Filters\Honeypot::class,
 
-        // 👇 nuestros filtros personalizados
-        'auth'          => \App\Filters\AuthFilter::class,
-        'admin'         => \App\Filters\AdminFilter::class, // 👈 alias para AdminFilter
+        // Tus filtros personalizados
+        'auth'  => \App\Filters\Auth::class,
+        'admin' => \App\Filters\AdminFilter::class,
     ];
 
     /**
-     * List of special required filters.
+     * Filtros globales que se ejecutan antes/después de cada petición.
      *
-     * @var array{before: list<string>, after: list<string>}
-     */
-    public array $required = [
-        'before' => [
-            'forcehttps',
-            'pagecache',
-        ],
-        'after' => [
-            'pagecache',
-            'performance',
-            'toolbar',
-        ],
-    ];
-
-    /**
-     * List of filter aliases that are always applied before/after every request.
+     * Nota: No estoy forzando 'auth' globalmente para evitar bloquear rutas públicas (login, assets, etc.).
      *
-     * @var array{
-     *     before: array<string, array{except: list<string>|string}>|list<string>,
-     *     after: array<string, array{except: list<string>|string}>|list<string>
-     * }
+     * @var array<string, array<string>>
      */
-    public array $globals = [
+    public $globals = [
         'before' => [
             // 'honeypot',
-            // 'csrf',
-            // 'invalidchars',
+            // 'csrf', // Habilítalo si quieres protección CSRF en formularios
         ],
-        'after' => [
+        'after'  => [
+            //'toolbar',
             // 'honeypot',
-            // 'secureheaders',
         ],
     ];
 
     /**
-     * List of filter aliases that works on a
-     * particular HTTP method (GET, POST, etc.).
+     * Filtros que se aplican por método HTTP (opcional).
      *
-     * @var array<string, list<string>>
+     * @var array<string, array<string>>
      */
-    public array $methods = [];
+    public $methods = [
+        // 'post' => ['csrf'],
+    ];
 
     /**
-     * List of filter aliases that should run on any
-     * before or after URI patterns.
+     * Filtros asignados por ruta.
      *
-     * @var array<string, array<string, list<string>>>
+     * Aquí puedes definir filtros para grupos de rutas o rutas individuales.
+     *
+     * @var array<string, array<string>>
      */
-    public array $filters = [
-        // Protege rutas del panel de usuario
-        'auth' => ['before' => ['panel', 'panel/*']],
-
-        // Protege rutas del panel de administrador
-        'admin' => ['before' => ['admin', 'admin/*']],
+    public $filters = [
+        // Ejemplo: aplicar 'auth' a todas las rutas que empiecen con 'panel' o 'admin'
+        'auth' => [
+            'before' => [
+                'panel/*',
+                'panel',
+            ],
+        ],
+        'admin' => [
+            'before' => [
+                'admin/*',
+                'admin',
+            ],
+        ],
     ];
 }
+

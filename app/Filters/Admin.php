@@ -1,22 +1,14 @@
 <?php
-namespace App\Filters;
+namespace App\Controllers;
 
-use CodeIgniter\HTTP\RequestInterface;
-use CodeIgniter\HTTP\ResponseInterface;
-use CodeIgniter\Filters\FilterInterface;
+use App\Controllers\BaseController;
 
-class Admin implements FilterInterface
+class Admin extends BaseController
 {
-    public function before(RequestInterface $request, $arguments = null)
+    public function index()
     {
-        $session = session();
-        if (! $session->get('logged_in') || $session->get('rol') !== 'admin') {
-            return redirect()->to('/')->with('error', 'Acceso denegado. Permisos insuficientes.');
-        }
-    }
-
-    public function after(RequestInterface $request, ResponseInterface $response, $arguments = null)
-    {
-        // No-op
+        // Renderiza la vista dashboard usando el layout
+        return view('admin/dashboard');
     }
 }
+

@@ -10,19 +10,22 @@ class AdminFilter implements FilterInterface
 {
     public function before(RequestInterface $request, $arguments = null)
     {
+        $session = session();
+
         // Verifica si el usuario NO está logueado
-        if (! session()->get('logged_in')) {
-            return redirect()->to('/'); // redirige al login
+        if (! $session->get('logged_in')) {
+            return redirect()->to('/')->with('error', 'Debes iniciar sesión.');
         }
 
         // Verifica si el usuario no es admin
-        if (session()->get('rol') !== 'admin') {
-            return redirect()->to('/panel'); // redirige al panel de usuario
+        if ($session->get('rol') !== 'admin') {
+            return redirect()->to('/panel')->with('error', 'Acceso restringido solo para administradores.');
         }
     }
 
     public function after(RequestInterface $request, ResponseInterface $response, $arguments = null)
     {
-        // No se necesita lógica después en este caso
+        // No se requiere lógica adicional después de ejecutar el controlador
     }
 }
+

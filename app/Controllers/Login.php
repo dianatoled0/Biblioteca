@@ -1,100 +1,60 @@
 <?php
+
 namespace App\Controllers;
 
 use App\Models\UsuarioModel;
-use App\Controllers\BaseController;
 
 class Login extends BaseController
 {
-    protected $usuarioModel;
-
-    public function __construct()
-    {
-        $this->usuarioModel = new UsuarioModel();
-        helper(['url', 'form', 'text']);
-    }
-
-    // Formulario de login
     public function index()
     {
-        // Si ya está logueado, redirige según rol
-        $ses = session();
-        if ($ses->get('logged_in')) {
-            if ($ses->get('rol') === 'admin') {
-                return redirect()->to('/admin');
-            }
-            return redirect()->to('/panel');
-        }
-
         return view('login');
     }
 
     public function autenticar()
     {
-        $usuario = $this->request->getPost('usuario');  
+        $session = session();
+        $usuarioModel = new UsuarioModel();
+
+        // Obtener datos del formulario
+        $username = $this->request->getPost('usuario');
         $password = $this->request->getPost('pass');
 
-        $datosUsuario = $this->usuarioModel->getUsuarioByUsername($usuario);
+        // Encriptar con MD5
+        $passwordHash = md5($password);
 
-        if ($datosUsuario) {
-            // Comparación usando MD5 (según tu BD)
-            if (md5($password) === $datosUsuario['pass']) {
-                // Guardar en sesión
-                session()->set([
-                    'usuario'   => $datosUsuario['usuario'],
-                    'nombre'    => $datosUsuario['nombre'],
-                    'apellido'  => $datosUsuario['apellido'],
-                    'rol'       => $datosUsuario['rol'],
-                    'logged_in' => true
-                ]);
+        // Buscar usuario en la tabla usuarios
+        $usuario = $usuarioModel->where('usuario', $username)
+                                ->where('pass', $passwordHash)
+                                ->first();
 
-                if ($datosUsuario['rol'] === 'admin') {
-                    return redirect()->to('/admin');
-                } else {
-                    return redirect()->to('/panel');
-                }
+        if ($usuario) {
+            // Guardar datos en sesión
+            $sessionData = [
+                'id'       => $usuario['id'],
+                'usuario'  => $usuario['usuario'],
+                'rol'      => $usuario['rol'],
+                'isLoggedIn' => true,
+            ];
+            $session->set($sessionData);
+
+            // Redirigir según rol
+            if ($usuario['rol'] === 'admin') {
+                return redirect()->to('/admin');
             } else {
-                return redirect()->back()->with('error', 'Contraseña incorrecta')->withInput();
+                return redirect()->to('/usuario');
             }
         } else {
-            return redirect()->back()->with('error', 'Usuario no encontrado')->withInput();
+            // Credenciales inválidas
+            $session->setFlashdata('error', 'Usuario o contraseña incorrectos');
+            return redirect()->to('/login');
         }
     }
 
-    // Panel para usuarios comunes (solo accesible si está logueado)
-    public function panel()
-    {
-        // Protección por filtro o por chequeo adicional
-        if (! session()->get('logged_in')) {
-            return redirect()->to('/');
-        }
-
-        return view('panel');
-    }
-
-    // Panel admin (ruta protegida por filtro admin)
-    public function admin()
-    {
-        // La protección principal la hace el filtro Admin.
-        // Aquí hacemos una verificación por si accede directamente.
-        if (! session()->get('logged_in') || session()->get('rol') !== 'admin') {
-            return redirect()->to('/')->with('error', 'Acceso denegado.');
-        }
-
-        // Pasar datos de sesión a la vista si quieres
-        $data = [
-            'nombre'   => session()->get('nombre'),
-            'apellido' => session()->get('apellido'),
-            'usuario'  => session()->get('usuario')
-        ];
-
-        return view('admin/dashboard', $data);
-    }
-
-    public function salir()
+    public function logout()
     {
         session()->destroy();
-        return redirect()->to('/')->with('success', 'Sesión cerrada.');
+        return redirect()->to('/login');
     }
 }
 
