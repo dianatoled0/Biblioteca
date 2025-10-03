@@ -29,13 +29,10 @@ $routes->group('usuario', ['filter' => 'auth'], function($routes) {
 
 // Rutas administrador (con filtro admin)
 $routes->group('admin', ['namespace' => 'App\Controllers\Adminview', 'filter' => 'admin'], function($routes) {
-    // Dashboard. Se recomienda crear un controlador 'Dashboard.php' o 'Home.php'
-    // en lugar de usar 'Admin::index', si 'Admin' es un controlador que manejará todas las otras rutas.
-    // Asumo que tu controlador de Dashboard se llama 'Admin' por ahora.
+    // 1. DASHBOARD
     $routes->get('/', 'Admin::index'); 
 
-    // RUTAS PARA CATEGORÍAS (¡NUEVAS! Usando CategoriaController)
-    // El controlador CategoriaController debe estar en App\Controllers\Adminview\CategoriaController.php
+    // 2. RUTAS PARA CATEGORÍAS (Llaman a CategoriaController)
     $routes->get('categorias', 'CategoriaController::index');
     $routes->get('categorias/crear', 'CategoriaController::crear');
     $routes->post('categorias/guardar', 'CategoriaController::guardar');
@@ -43,7 +40,7 @@ $routes->group('admin', ['namespace' => 'App\Controllers\Adminview', 'filter' =>
     $routes->post('categorias/actualizar/(:num)', 'CategoriaController::actualizar/$1');
     $routes->get('categorias/eliminar/(:num)', 'CategoriaController::eliminar/$1');
 
-    // CRUD Discos 
+    // 3. CRUD DISCOS (Llaman a DiscoController)
     $routes->get('discos', 'DiscoController::index');
     $routes->get('discos/crear', 'DiscoController::crear');
     $routes->post('discos/guardar', 'DiscoController::guardar');
@@ -52,12 +49,21 @@ $routes->group('admin', ['namespace' => 'App\Controllers\Adminview', 'filter' =>
     $routes->get('discos/eliminar/(:num)', 'DiscoController::eliminar/$1');
 
 
-    // Usuarios
-    $routes->get('usuarios', 'Admin::usuarios');
-    $routes->match(['get','post'], 'usuarios/crear', 'Admin::crearUsuario');
-    $routes->match(['get','post'], 'usuarios/editar/(:num)', 'Admin::editarUsuario/$1');
-    $routes->get('usuarios/eliminar/(:num)', 'Admin::eliminarUsuario/$1');
+    // 4. RUTAS DE USUARIOS (Con corrección GET/POST explícita)
+    $routes->get('usuarios', 'UsuariosController::index');
+    
+    // Crear Usuario
+    $routes->get('usuarios/crear', 'UsuariosController::crear'); 
+    $routes->post('usuarios/crear', 'UsuariosController::crear'); 
+    
+    // Editar Usuario
+    $routes->get('usuarios/editar/(:num)', 'UsuariosController::editar/$1');
+    $routes->post('usuarios/editar/(:num)', 'UsuariosController::editar/$1');
+    
+    $routes->get('usuarios/eliminar/(:num)', 'UsuariosController::eliminar/$1');
 
+
+    // 5. RUTAS QUE SE MANTIENEN EN Admin.php
     // Membresías
     $routes->get('membresias', 'Admin::membresias');
     $routes->match(['get','post'], 'membresias/crear', 'Admin::crearMembresia');

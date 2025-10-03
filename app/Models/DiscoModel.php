@@ -4,39 +4,40 @@ use CodeIgniter\Model;
 
 class DiscoModel extends Model
 {
-    protected $table            = 'discos';
-    protected $primaryKey       = 'id';
-    protected $returnType       = 'array';
+    protected $table          = 'discos';
+    protected $primaryKey     = 'id';
+    protected $returnType     = 'array';
     
-    // CORRECCIÓN CRÍTICA: Desactivamos las funciones de fecha y borrado
-    protected $useTimestamps    = false;
-    protected $useSoftDeletes   = false;
+    // Configuración para evitar errores de fecha (timestamps)
+    protected $useTimestamps  = false;
+    protected $useSoftDeletes = false;
     
-    // Lista final de campos permitidos, sin 'imagen'
-    protected $allowedFields    = [
+    // Campos permitidos (DEBEN COINCIDIR con la DB)
+    protected $allowedFields  = [
         'titulo', 
         'artista', 
-        'precio_venta', // Nombre de Columna DB
+        'precio_venta',
         'stock', 
-        'id_categoria'  // Nombre de Columna DB
+        'id_categoria'
     ];
 
-    // Reglas de validación: Usamos los NOMBRES DEL FORMULARIO (input names)
+    // CRÍTICO: Las reglas de validación usan los nombres de la DB 
+    // Este bloque ha sido reescrito para eliminar el carácter invisible.
     protected $validationRules = [
         'titulo'        => 'required|min_length[3]|max_length[255]',
         'artista'       => 'required|min_length[3]|max_length[255]',
-        'precio'        => 'required|numeric|greater_than[0]', 
+        'precio_venta'  => 'required|numeric|greater_than[0]',
         'stock'         => 'required|integer|greater_than_equal_to[0]',
-        'categoria_id'  => 'required|integer'                   
+        'id_categoria'  => 'required|integer' // ¡Línea 30 limpia y correcta!
     ];
     
     protected $validationMessages = [
-        'precio' => [
+        'precio_venta' => [
             'required' => 'El campo Precio (Q) es requerido.',
             'numeric'  => 'El Precio debe ser un número.',
             'greater_than' => 'El Precio debe ser mayor a cero.'
         ],
-        'categoria_id' => [
+        'id_categoria' => [
             'required' => 'Debe seleccionar una Categoría.',
             'integer'  => 'Debe seleccionar una Categoría válida.'
         ]

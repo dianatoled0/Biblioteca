@@ -1,166 +1,22 @@
-<?php
+<?php namespace App\Controllers\Adminview;
 
-namespace App\Controllers\Adminview;
-
-use App\Models\CategoriaModel;
-use App\Models\DiscoModel;
-use App\Models\UsuarioModel;
+use App\Controllers\BaseController;
 use App\Models\MembresiaModel;
 use App\Models\PagoModel;
 use App\Models\IngresoModel;
 use App\Models\ReciboModel;
-use CodeIgniter\Controller;
 
-class Admin extends \App\Controllers\BaseController 
+// NOTA IMPORTANTE: Hemos quitado CategoriaModel, DiscoModel, y UsuarioModel
+// porque sus CRUDs ya están en controladores dedicados.
+
+class Admin extends BaseController 
 {
+    /**
+     * Muestra el Dashboard Principal.
+     */
     public function index()
     {
         return view('admin/index'); // dashboard del admin
-    }
-
-    /* =========================
-     * CRUD CATEGORÍAS
-     * ========================= */
-    public function categorias()
-    {
-        $model = new CategoriaModel();
-        $data['categorias'] = $model->findAll();
-        return view('admin/categorias/index', $data);
-    }
-
-    public function crearCategoria()
-    {
-        $model = new CategoriaModel();
-        if ($this->request->getMethod() === 'post') {
-            $model->save([
-                'nombre' => $this->request->getPost('nombre'),
-                'descripcion' => $this->request->getPost('descripcion')
-            ]);
-            return redirect()->to('/admin/categorias');
-        }
-        return view('admin/categorias/crear');
-    }
-
-    public function editarCategoria($id)
-    {
-        $model = new CategoriaModel();
-        if ($this->request->getMethod() === 'post') {
-            $model->update($id, [
-                'nombre' => $this->request->getPost('nombre'),
-                'descripcion' => $this->request->getPost('descripcion')
-            ]);
-            return redirect()->to('/admin/categorias');
-        }
-        $data['categoria'] = $model->find($id);
-        return view('admin/categorias/editar', $data);
-    }
-
-    public function eliminarCategoria($id)
-    {
-        $model = new CategoriaModel();
-        $model->delete($id);
-        return redirect()->to('/admin/categorias');
-    }
-
-    /* =========================
-     * CRUD DISCOS
-     * ========================= */
-    public function discos()
-    {
-        $model = new DiscoModel();
-        $data['discos'] = $model->findAll();
-        return view('admin/discos/index', $data);
-    }
-
-    public function crearDisco()
-    {
-        $model = new DiscoModel();
-        if ($this->request->getMethod() === 'post') {
-            $model->save([
-                'titulo'       => $this->request->getPost('titulo'),
-                'artista'      => $this->request->getPost('artista'),
-                'precio'       => $this->request->getPost('precio'),
-                'id_categoria' => $this->request->getPost('id_categoria')
-            ]);
-            return redirect()->to('/admin/discos');
-        }
-        return view('admin/discos/crear');
-    }
-
-    public function editarDisco($id)
-    {
-        $model = new DiscoModel();
-        if ($this->request->getMethod() === 'post') {
-            $model->update($id, [
-                'titulo'       => $this->request->getPost('titulo'),
-                'artista'      => $this->request->getPost('artista'),
-                'precio'       => $this->request->getPost('precio'),
-                'id_categoria' => $this->request->getPost('id_categoria')
-            ]);
-            return redirect()->to('/admin/discos');
-        }
-        $data['disco'] = $model->find($id);
-        return view('admin/discos/editar', $data);
-    }
-
-    public function eliminarDisco($id)
-    {
-        $model = new DiscoModel();
-        $model->delete($id);
-        return redirect()->to('/admin/discos');
-    }
-
-    /* =========================
-     * CRUD USUARIOS
-     * ========================= */
-    public function usuarios()
-    {
-        $model = new UsuarioModel();
-        $data['usuarios'] = $model->findAll();
-        return view('admin/usuarios/index', $data);
-    }
-
-    public function crearUsuario()
-    {
-        $model = new UsuarioModel();
-        if ($this->request->getMethod() === 'post') {
-            $model->save([
-                'nombre'   => $this->request->getPost('nombre'),
-                'email'    => $this->request->getPost('email'),
-                'password' => md5($this->request->getPost('password')),
-                'rol'      => $this->request->getPost('rol')
-            ]);
-            return redirect()->to('/admin/usuarios');
-        }
-        return view('admin/usuarios/crear');
-    }
-
-    public function editarUsuario($id)
-    {
-        $model = new UsuarioModel();
-        if ($this->request->getMethod() === 'post') {
-            $updateData = [
-                'nombre' => $this->request->getPost('nombre'),
-                'email'  => $this->request->getPost('email'),
-                'rol'    => $this->request->getPost('rol')
-            ];
-
-            if ($this->request->getPost('password')) {
-                $updateData['password'] = md5($this->request->getPost('password'));
-            }
-
-            $model->update($id, $updateData);
-            return redirect()->to('/admin/usuarios');
-        }
-        $data['usuario'] = $model->find($id);
-        return view('admin/usuarios/editar', $data);
-    }
-
-    public function eliminarUsuario($id)
-    {
-        $model = new UsuarioModel();
-        $model->delete($id);
-        return redirect()->to('/admin/usuarios');
     }
 
     /* =========================
@@ -177,10 +33,11 @@ class Admin extends \App\Controllers\BaseController
     {
         $model = new MembresiaModel();
         if ($this->request->getMethod() === 'post') {
+            // Asegúrate de usar $model->save() con la data de la DB
             $model->save([
-                'nombre'          => $this->request->getPost('nombre'),
-                'precio'          => $this->request->getPost('precio'),
-                'duracion_meses'  => $this->request->getPost('duracion_meses')
+                'nombre' => $this->request->getPost('nombre'),
+                'precio' => $this->request->getPost('precio'),
+                'duracion_meses' => $this->request->getPost('duracion_meses')
             ]);
             return redirect()->to('/admin/membresias');
         }
@@ -192,9 +49,9 @@ class Admin extends \App\Controllers\BaseController
         $model = new MembresiaModel();
         if ($this->request->getMethod() === 'post') {
             $model->update($id, [
-                'nombre'          => $this->request->getPost('nombre'),
-                'precio'          => $this->request->getPost('precio'),
-                'duracion_meses'  => $this->request->getPost('duracion_meses')
+                'nombre' => $this->request->getPost('nombre'),
+                'precio' => $this->request->getPost('precio'),
+                'duracion_meses' => $this->request->getPost('duracion_meses')
             ]);
             return redirect()->to('/admin/membresias');
         }
@@ -266,8 +123,8 @@ class Admin extends \App\Controllers\BaseController
         $model = new IngresoModel();
         if ($this->request->getMethod() === 'post') {
             $model->save([
-                'id_disco'      => $this->request->getPost('id_disco'),
-                'cantidad'      => $this->request->getPost('cantidad'),
+                'id_disco' => $this->request->getPost('id_disco'),
+                'cantidad' => $this->request->getPost('cantidad'),
                 'fecha_ingreso' => $this->request->getPost('fecha_ingreso')
             ]);
             return redirect()->to('/admin/ingresos');
@@ -292,4 +149,3 @@ class Admin extends \App\Controllers\BaseController
         return view('admin/recibos/detalle', $data);
     }
 }
-

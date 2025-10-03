@@ -377,7 +377,7 @@
         </aside>
 
         <div class="main-content-wrapper">
-            <?= $this->renderSection('content') ?> 
+            <?= $this->renderSection('contenido') ?> 
         </div>
     </div>
 
