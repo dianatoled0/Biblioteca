@@ -17,15 +17,14 @@ class AdminFilter implements FilterInterface
             return redirect()->to('/')->with('error', 'Debes iniciar sesión.');
         }
 
-        // Verifica si el usuario no es admin
+        // Verifica si el usuario NO es admin
         if ($session->get('rol') !== 'admin') {
-            return redirect()->to('/panel')->with('error', 'Acceso restringido solo para administradores.');
+            return redirect()->to('/usuario')->with('error', 'Acceso restringido solo para administradores.');
         }
     }
 
     public function after(RequestInterface $request, ResponseInterface $response, $arguments = null)
     {
-        // No se requiere lógica adicional después de ejecutar el controlador
+        // No se requiere lógica adicional
     }
 }
-

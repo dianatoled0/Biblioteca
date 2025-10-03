@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Controllers;
+namespace App\Controllers\Adminview;
 
 use App\Models\CategoriaModel;
 use App\Models\DiscoModel;
@@ -11,7 +11,7 @@ use App\Models\IngresoModel;
 use App\Models\ReciboModel;
 use CodeIgniter\Controller;
 
-class Admin extends BaseController
+class Admin extends \App\Controllers\BaseController 
 {
     public function index()
     {

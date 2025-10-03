@@ -1,47 +1,44 @@
-<?php
-
-namespace App\Models;
+<?php namespace App\Models;
 
 use CodeIgniter\Model;
 
 class DiscoModel extends Model
 {
-    protected $table = 'discos';          // Nombre de la tabla
-    protected $primaryKey = 'id';         // Llave primaria
-
-    // Campos permitidos para inserción/actualización
-    protected $allowedFields = [
-        'id_categoria',
-        'titulo',
-        'artista',
-        'precio_venta',
-        'stock'
+    protected $table            = 'discos';
+    protected $primaryKey       = 'id';
+    protected $returnType       = 'array';
+    
+    // CORRECCIÓN CRÍTICA: Desactivamos las funciones de fecha y borrado
+    protected $useTimestamps    = false;
+    protected $useSoftDeletes   = false;
+    
+    // Lista final de campos permitidos, sin 'imagen'
+    protected $allowedFields    = [
+        'titulo', 
+        'artista', 
+        'precio_venta', // Nombre de Columna DB
+        'stock', 
+        'id_categoria'  // Nombre de Columna DB
     ];
 
-    // Opcional: validaciones internas
+    // Reglas de validación: Usamos los NOMBRES DEL FORMULARIO (input names)
     protected $validationRules = [
-        'id_categoria'  => 'required|integer',
-        'titulo'        => 'required|min_length[2]|max_length[100]',
-        'artista'       => 'required|min_length[2]|max_length[100]',
-        'precio_venta'  => 'required|decimal',
-        'stock'         => 'required|integer'
+        'titulo'        => 'required|min_length[3]|max_length[255]',
+        'artista'       => 'required|min_length[3]|max_length[255]',
+        'precio'        => 'required|numeric|greater_than[0]', 
+        'stock'         => 'required|integer|greater_than_equal_to[0]',
+        'categoria_id'  => 'required|integer'                   
     ];
-
+    
     protected $validationMessages = [
-        'titulo' => [
-            'required' => 'El título es obligatorio',
-            'min_length' => 'El título debe tener al menos 2 caracteres'
+        'precio' => [
+            'required' => 'El campo Precio (Q) es requerido.',
+            'numeric'  => 'El Precio debe ser un número.',
+            'greater_than' => 'El Precio debe ser mayor a cero.'
         ],
-        'artista' => [
-            'required' => 'El artista es obligatorio',
-        ],
-        'precio_venta' => [
-            'required' => 'El precio es obligatorio',
-            'decimal'  => 'El precio debe ser un número válido'
-        ],
-        'stock' => [
-            'required' => 'El stock es obligatorio',
-            'integer'  => 'El stock debe ser un número entero'
+        'categoria_id' => [
+            'required' => 'Debe seleccionar una Categoría.',
+            'integer'  => 'Debe seleccionar una Categoría válida.'
         ]
     ];
 }

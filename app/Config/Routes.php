@@ -3,21 +3,13 @@
 use CodeIgniter\Router\RouteCollection;
 use Config\Services;
 
-/**
- * @var RouteCollection $routes
- */
+/** @var RouteCollection $routes */
 $routes = Services::routes();
 
-// Cargar el sistema de rutas por defecto
 if (is_file(SYSTEMPATH . 'Config/Routes.php')) {
     require SYSTEMPATH . 'Config/Routes.php';
 }
 
-/*
-|--------------------------------------------------------------------------
-| Rutas predeterminadas
-|--------------------------------------------------------------------------
-*/
 $routes->setDefaultNamespace('App\Controllers');
 $routes->setDefaultController('Login');
 $routes->setDefaultMethod('index');
@@ -25,29 +17,25 @@ $routes->setTranslateURIDashes(false);
 $routes->set404Override();
 $routes->setAutoRoute(false);
 
-/*
-|--------------------------------------------------------------------------
-| Rutas públicas (Login / Usuario)
-|--------------------------------------------------------------------------
-*/
+// Rutas públicas
 $routes->get('/', 'Login::index');
 $routes->post('login/autenticar', 'Login::autenticar');
-$routes->get('login/salir', 'Login::salir');
+$routes->get('login/logout', 'Login::logout');
 
-// Panel usuario (requiere login)
-$routes->get('panel', 'Login::panel', ['filter' => 'auth']);
+// Rutas usuario (con filtro auth)
+$routes->group('usuario', ['filter' => 'auth'], function($routes) {
+    $routes->get('/', 'Usuario::index'); // controlador Usuario.php
+});
 
-/*
-|--------------------------------------------------------------------------
-| Rutas de Administrador (agrupadas)
-|--------------------------------------------------------------------------
-*/
-$routes->group('admin', ['namespace' => 'App\Controllers\Admin', 'filter' => 'admin'], function($routes) {
+// Rutas administrador (con filtro admin)
+$routes->group('admin', ['namespace' => 'App\Controllers\Adminview', 'filter' => 'admin'], function($routes) {
+    // Dashboard. Se recomienda crear un controlador 'Dashboard.php' o 'Home.php'
+    // en lugar de usar 'Admin::index', si 'Admin' es un controlador que manejará todas las otras rutas.
+    // Asumo que tu controlador de Dashboard se llama 'Admin' por ahora.
+    $routes->get('/', 'Admin::index'); 
 
-    // Dashboard
-    $routes->get('/', 'Admin::index');
-
-    // Categorías
+    // RUTAS PARA CATEGORÍAS (¡NUEVAS! Usando CategoriaController)
+    // El controlador CategoriaController debe estar en App\Controllers\Adminview\CategoriaController.php
     $routes->get('categorias', 'CategoriaController::index');
     $routes->get('categorias/crear', 'CategoriaController::crear');
     $routes->post('categorias/guardar', 'CategoriaController::guardar');
@@ -55,11 +43,14 @@ $routes->group('admin', ['namespace' => 'App\Controllers\Admin', 'filter' => 'ad
     $routes->post('categorias/actualizar/(:num)', 'CategoriaController::actualizar/$1');
     $routes->get('categorias/eliminar/(:num)', 'CategoriaController::eliminar/$1');
 
-    // Discos
-    $routes->get('discos', 'Admin::discos');
-    $routes->match(['get','post'], 'discos/crear', 'Admin::crearDisco');
-    $routes->match(['get','post'], 'discos/editar/(:num)', 'Admin::editarDisco/$1');
-    $routes->get('discos/eliminar/(:num)', 'Admin::eliminarDisco/$1');
+    // CRUD Discos 
+    $routes->get('discos', 'DiscoController::index');
+    $routes->get('discos/crear', 'DiscoController::crear');
+    $routes->post('discos/guardar', 'DiscoController::guardar');
+    $routes->get('discos/editar/(:num)', 'DiscoController::editar/$1');
+    $routes->post('discos/actualizar/(:num)', 'DiscoController::actualizar/$1');
+    $routes->get('discos/eliminar/(:num)', 'DiscoController::eliminar/$1');
+
 
     // Usuarios
     $routes->get('usuarios', 'Admin::usuarios');

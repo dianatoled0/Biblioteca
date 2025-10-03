@@ -8,7 +8,15 @@ class Login extends BaseController
 {
     public function index()
     {
-        return view('login');
+        $session = session();
+        // Si ya está logueado, redirigir según rol
+        if ($session->get('logged_in')) {
+            return $session->get('rol') === 'admin' 
+                ? redirect()->to('/admin') 
+                : redirect()->to('/usuario');
+        }
+
+        return view('login'); // archivo: app/Views/login.php
     }
 
     public function autenticar()
@@ -16,45 +24,36 @@ class Login extends BaseController
         $session = session();
         $usuarioModel = new UsuarioModel();
 
-        // Obtener datos del formulario
         $username = $this->request->getPost('usuario');
         $password = $this->request->getPost('pass');
-
-        // Encriptar con MD5
         $passwordHash = md5($password);
 
-        // Buscar usuario en la tabla usuarios
         $usuario = $usuarioModel->where('usuario', $username)
                                 ->where('pass', $passwordHash)
                                 ->first();
 
         if ($usuario) {
             // Guardar datos en sesión
-            $sessionData = [
-                'id'       => $usuario['id'],
-                'usuario'  => $usuario['usuario'],
-                'rol'      => $usuario['rol'],
-                'isLoggedIn' => true,
-            ];
-            $session->set($sessionData);
+            $session->set([
+                'id'        => $usuario['id'],
+                'usuario'   => $usuario['usuario'],
+                'rol'       => $usuario['rol'],
+                'logged_in' => true,
+            ]);
 
             // Redirigir según rol
-            if ($usuario['rol'] === 'admin') {
-                return redirect()->to('/admin');
-            } else {
-                return redirect()->to('/usuario');
-            }
+            return $usuario['rol'] === 'admin' 
+                ? redirect()->to('/admin') 
+                : redirect()->to('/usuario');
         } else {
-            // Credenciales inválidas
             $session->setFlashdata('error', 'Usuario o contraseña incorrectos');
-            return redirect()->to('/login');
+            return redirect()->to('/'); // login en la raíz
         }
     }
 
     public function logout()
     {
         session()->destroy();
-        return redirect()->to('/login');
+        return redirect()->to('/'); // login en la raíz
     }
 }
-
