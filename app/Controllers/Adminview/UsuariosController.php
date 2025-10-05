@@ -1,7 +1,8 @@
 <?php namespace App\Controllers\Adminview;
 
-use App\Controllers\BaseController; // Asegura que esta línea sea correcta
+use App\Controllers\BaseController; 
 use App\Models\UsuarioModel;
+use CodeIgniter\I18n\Time; // Se asegura de usar la clase Time para manejo de fechas
 
 class UsuariosController extends BaseController
 {
@@ -13,64 +14,67 @@ class UsuariosController extends BaseController
         $this->usuarioModel = new UsuarioModel();
     }
 
-    /**
-     * Muestra la lista de todos los usuarios.
-     */
     public function index()
     {
-        // Obtiene todos los usuarios
         $data['usuarios'] = $this->usuarioModel->findAll();
-        
-        // Carga la vista de índice.
         return view('admin/usuarios/index', $data);
     }
 
-    /**
-     * Muestra el formulario de creación o procesa la creación.
-     */
     public function crear()
     {
+        // 1. Procesa el formulario (POST)
         if ($this->request->getMethod() === 'post') {
             
-            // Recolección de datos del formulario.
-            $data = [
-                'usuario'                => $this->request->getPost('usuario'),
-                'pass'                   => $this->request->getPost('pass') ?: null,
-                'rol'                    => $this->request->getPost('rol'),
-                'nombre'                 => $this->request->getPost('nombre'),
-                'apellido'               => $this->request->getPost('apellido'),
-                'correo'                 => $this->request->getPost('correo'),
-                'id_membresia'           => $this->request->getPost('id_membresia') ?? 1, 
-                'fecha_nacimiento'       => $this->request->getPost('fecha_nacimiento') ?: null,
-                'fecha_inicio_membresia' => $this->request->getPost('fecha_inicio_membresia'),
-                'fecha_fin_membresia'    => $this->request->getPost('fecha_fin_membresia'),
-            ];
-
-            // 1. FORZAR LA VALIDACIÓN CON EL CONTEXTO 'insert' (creación)
-            $rules = $this->usuarioModel->getValidationRules(['except' => ['pass']]);
-            $rules['pass'] = $this->usuarioModel->getValidationRules(['only' => ['pass_create']])['pass_create'];
-
-            if (!$this->validate($rules, $this->usuarioModel->getValidationMessages())) {
-                // Si la validación falla (incluyendo la regla 'pass_create')
-                return redirect()->back()->withInput()->with('errors', $this->validator->getErrors());
+            // --- Lógica de cálculo de fechas y valores por defecto ---
+            $fechaInicio = $this->request->getPost('fecha_inicio_membresia') ?: Time::now()->toDateString();
+            $idMembresia = $this->request->getPost('id_membresia') ?? 1; 
+            
+            // Calculamos fecha fin (asumiendo 4 meses por defecto si está vacío)
+            $fechaFin = $this->request->getPost('fecha_fin_membresia');
+            if (empty($fechaFin)) {
+                $fechaFin = Time::parse($fechaInicio)->addMonths(4)->toDateString();
             }
 
-            // 2. Si la validación pasa, usamos insert()
-            if ($this->usuarioModel->insert($data)) {
-                return redirect()->to('/admin/usuarios')->with('success', 'Usuario creado correctamente.');
-            } else {
-                // Fallo de la base de datos (Ej. FK, conexión)
-                return redirect()->back()->withInput()->with('errors', ['error_db' => 'Error al intentar guardar el usuario en la base de datos.']);
+            // Recolección de datos
+            $data = [
+                'usuario' => $this->request->getPost('usuario'),
+                'pass' => $this->request->getPost('pass'), 
+                'rol' => $this->request->getPost('rol'),
+                'nombre' => $this->request->getPost('nombre'),
+                'apellido' => $this->request->getPost('apellido'),
+                'correo' => $this->request->getPost('correo'),
+                'id_membresia' => $idMembresia, 
+                'fecha_nacimiento' => $this->request->getPost('fecha_nacimiento') ?: null,
+                'fecha_inicio_membresia' => $fechaInicio,
+                'fecha_fin_membresia' => $fechaFin,
+            ];
+
+            // 2. Intenta insertar los datos con manejo de excepciones (TRY-CATCH)
+            try {
+                if ($this->usuarioModel->insert($data)) {
+                    return redirect()->to('/admin/usuarios')->with('success', 'Usuario creado correctamente.');
+                } else {
+                    // Fallo de Validación (si el modelo devuelve false)
+                    $errors = $this->usuarioModel->errors();
+                    return redirect()->back()->withInput()->with('errors', $errors);
+                }
+            } catch (\CodeIgniter\Database\Exceptions\DatabaseException $e) {
+                // CAPTURA DE ERROR CRÍTICO DE BASE DE DATOS (FK, columna faltante, etc.)
+                $errors = ['db_error' => 'Error Crítico de Base de Datos: ' . $e->getMessage()];
+                return redirect()->back()->withInput()->with('errors', $errors);
+            } catch (\Exception $e) {
+                // CAPTURA DE CUALQUIER OTRA EXCEPCIÓN
+                $errors = ['general_error' => 'Error Inesperado: ' . $e->getMessage()];
+                return redirect()->back()->withInput()->with('errors', $errors);
             }
         }
         
-        // Muestra el formulario
+        // 3. Muestra el formulario (GET)
         return view('admin/usuarios/form');
     }
 
-    /**
-     * Muestra el formulario de edición o procesa la actualización.
-     */
+    // El resto de métodos (editar, eliminar) se mantienen igual
+
     public function editar($id)
     {
         $usuario = $this->usuarioModel->find($id);
@@ -80,39 +84,35 @@ class UsuariosController extends BaseController
         }
 
         if ($this->request->getMethod() === 'post') {
+            
             $data = [
-                'id'                     => $id, 
-                'usuario'                => $this->request->getPost('usuario'),
-                'rol'                    => $this->request->getPost('rol'),
-                'nombre'                 => $this->request->getPost('nombre'),
-                'apellido'               => $this->request->getPost('apellido'),
-                'correo'                 => $this->request->getPost('correo'),
-                'id_membresia'           => $this->request->getPost('id_membresia'),
-                'fecha_nacimiento'       => $this->request->getPost('fecha_nacimiento'),
+                'id' => $id, 
+                'usuario' => $this->request->getPost('usuario'),
+                'rol' => $this->request->getPost('rol'),
+                'nombre' => $this->request->getPost('nombre'),
+                'apellido' => $this->request->getPost('apellido'),
+                'correo' => $this->request->getPost('correo'),
+                'id_membresia' => $this->request->getPost('id_membresia') ?? 1,
+                'fecha_nacimiento' => $this->request->getPost('fecha_nacimiento') ?: null,
                 'fecha_inicio_membresia' => $this->request->getPost('fecha_inicio_membresia'),
-                'fecha_fin_membresia'    => $this->request->getPost('fecha_fin_membresia'),
+                'fecha_fin_membresia' => $this->request->getPost('fecha_fin_membresia'),
             ];
             
-            // Solo actualizamos la contraseña si se proporcionó una nueva.
             $newPass = $this->request->getPost('pass');
             if (!empty($newPass)) {
-                $data['pass'] = $newPass; 
+                $data['pass'] = $newPass;
             }
             
-            // Usamos save() para la actualización
             if ($this->usuarioModel->save($data)) {
                 return redirect()->to('/admin/usuarios')->with('success', 'Usuario actualizado correctamente.');
             } else {
-                 return redirect()->back()->withInput()->with('errors', $this->usuarioModel->errors());
+                return redirect()->back()->withInput()->with('errors', $this->usuarioModel->errors());
             }
         }
 
         return view('admin/usuarios/form', ['usuario' => $usuario]);
     }
 
-    /**
-     * Elimina un usuario.
-     */
     public function eliminar($id)
     {
         $this->usuarioModel->delete($id);

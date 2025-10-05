@@ -1,6 +1,6 @@
 <?= $this->extend('admin/layout') ?>
 
-<?= $this->section('content') ?>
+<?= $this->section('contenido') ?>
 
 <header class="main-header">
     <h2>Gestión de Discos</h2>

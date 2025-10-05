@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+<!DOCTYPE html> 
 <html lang="es">
 <head>
     <meta charset="UTF-8">
@@ -86,12 +86,13 @@
             color: #FFFFFF;
         }
 
+        /* NOTA: Estos estilos SÍ APLICAN A TODOS LOS ÍCONOS DE LA BARRA LATERAL (NO AL LOGO DE MELOFY) */
         .sidebar-nav .icon, .sidebar-footer .icon {
             width: 24px;
             height: 24px;
             stroke-width: 2;
             fill: none;
-            stroke: currentColor;
+            stroke: currentColor; /* Esto hace que el color sea gris/blanco según el estado */
             stroke-linecap: round;
             stroke-linejoin: round;
         }
@@ -122,7 +123,6 @@
         /* Contenedores y Grids */
         .dashboard-grid {
             display: grid;
-            /* ¡CAMBIO APLICADO AQUÍ! Ahora es 1 columna que ocupa todo el ancho */
             grid-template-columns: 1fr; 
             gap: 32px;
         }
@@ -279,7 +279,7 @@
             padding-bottom: 0;
         }
     </style>
-    </head>
+</head>
 <body>
     
     <?php 
@@ -298,10 +298,10 @@
     {
         // Caso especial para el Dashboard: si el segmento es vacío o 'admin' (ruta base)
         if ($segment_name === 'admin') {
-             // getSegment(2) en /admin/ puede ser vacío o 'admin' dependiendo de la config.
-             if (empty($current_segment)) { 
-                 return 'active';
-             }
+            // getSegment(2) en /admin/ puede ser vacío o 'admin' dependiendo de la config.
+            if (empty($current_segment)) { 
+                return 'active';
+            }
         }
         // Caso general para los demás controladores
         return ($segment_name === $current_segment) ? 'active' : '';
@@ -313,7 +313,11 @@
         <aside class="sidebar">
             <div class="sidebar-header">
                 <svg width="32" height="32" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <path d="M12 2C6.477 2 2 6.477 2 12V18C2 19.105 2.895 20 4 20H6C7.105 20 8 19.105 8 18V12C8 9.791 9.791 8 12 8C14.209 8 16 9.791 16 12V18C16 19.105 16.895 20 18 20H20C21.105 20 22 19.105 22 18V12C22 6.477 17.523 2 12 2Z" stroke="#8B5CF6" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    <path d="M12 3c-3.866 0-7 3.134-7 7v2h2v-2a5 5 0 0 1 10 0v2h2v-2c0-3.866-3.134-7-7-7z" 
+                          fill="#8B5CF6"/>
+                    <rect x="3" y="10" width="4" height="7" rx="1" ry="1" fill="#8B5CF6"/>
+                    <rect x="17" y="10" width="4" height="7" rx="1" ry="1" fill="#8B5CF6"/>
+                    <rect x="11" y="19" width="2" height="2" rx="0.5" ry="0.5" fill="#8B5CF6"/>
                 </svg>
                 <h1>Melofy</h1>
             </div>
@@ -339,20 +343,21 @@
                     </li>
                     <li class="<?= is_active('discos', $segmento_actual) ?>">
                         <a href="<?= base_url('admin/discos') ?>">
-                            <svg class="icon" viewBox="0 0 24 24"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"></path><line x1="7" y1="7" x2="7.01" y2="7"></line></svg>
+                            <svg class="icon" viewBox="0 0 24 24">
+                                <circle cx="12" cy="12" r="10"></circle>
+                                <circle cx="12" cy="12" r="3"></circle>
+                                <path d="M12 2a10 10 0 0 1 7.07 2.93"></path>
+                                <path d="M3.05 12a10 10 0 0 1 7.07-7.07"></path>
+                                <path d="M12 22a10 10 0 0 0 7.07-2.93"></path>
+                                <path d="M20.95 12a10 10 0 0 0-7.07 7.07"></path>
+                            </svg>
                             <span>Discos</span>
-                        </a>
-                    </li>
-                    <li class="<?= is_active('ingresos', $segmento_actual) ?>">
-                        <a href="<?= base_url('admin/ingresos') ?>">
-                            <svg class="icon" viewBox="0 0 24 24"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path><polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline><line x1="12" y1="22.08" x2="12" y2="12"></line></svg>
-                            <span>Ingresos / Stock</span>
                         </a>
                     </li>
                     <li class="<?= is_active('recibos', $segmento_actual) ?>">
                         <a href="<?= base_url('admin/recibos') ?>">
-                            <svg class="icon" viewBox="0 0 24 24"><path d="M13 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"></path><polyline points="13 2 13 9 20 9"></polyline></svg>
-                            <span>Recibos</span>
+                            <svg class="icon" viewBox="0 0 24 24"><circle cx="9" cy="21" r="1"></circle><circle cx="20" cy="21" r="1"></circle><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"></path></svg>
+                            <span>Pedidos</span>
                         </a>
                     </li>
                     <li class="<?= is_active('membresias', $segmento_actual) ?>">
@@ -361,13 +366,7 @@
                             <span>Membresías</span>
                         </a>
                     </li>
-                    <li class="<?= is_active('pagos', $segmento_actual) ?>">
-                        <a href="<?= base_url('admin/pagos') ?>">
-                            <svg class="icon" viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
-                            <span>Tipos de Pago</span>
-                        </a>
-                    </li>
-                </ul>
+                    </ul>
             </nav>
             <div class="sidebar-footer">
                 <a href="<?= base_url('login/logout') ?>"> <svg class="icon" viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg>
@@ -381,5 +380,5 @@
         </div>
     </div>
 
-    </body>
-</html> 
+</body>
+</html>

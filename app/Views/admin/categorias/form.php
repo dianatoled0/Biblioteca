@@ -2,7 +2,7 @@
 
 <?= $this->extend('admin/layout') ?>
 
-<?= $this->section('content') ?>
+<?= $this->section('contenido') ?>
 
 <header class="main-header">
     <h2><?= isset($categoria) ? 'Editar Categoría: ' . esc($categoria['nom_categoria']) : 'Crear Nueva Categoría' ?></h2>

@@ -5,7 +5,7 @@
 $this->extend('admin/layout'); 
 ?>
 
-<?= $this->section('contenido'); ?>
+<?= $this->section('contenido'); ?> 
 
 <?php
 // Determina si estamos creando o editando
@@ -19,10 +19,16 @@ $action_url = $is_edit ? base_url('admin/usuarios/editar/' . esc($usuario['id'])
         <?= $title; ?>
     </h2>
 
-    <?php if (session()->getFlashdata('errors')): ?>
+    <?php 
+    // Muestra los errores de validación devueltos por el controlador
+    // Usa 'session()->getFlashdata('errors')' que es lo que el controlador retorna
+    $errors = session()->getFlashdata('errors');
+    if (!empty($errors)): 
+    ?>
         <div class="alert alert-danger" style="background-color: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; padding: 10px; border-radius: 8px; margin-bottom: 20px;">
+            <p style="font-weight: 600; margin-bottom: 5px;">Por favor, corrige los siguientes errores:</p>
             <ul>
-            <?php foreach (session()->getFlashdata('errors') as $error): ?>
+            <?php foreach ($errors as $error): ?>
                 <li><?= esc($error); ?></li>
             <?php endforeach; ?>
             </ul>
@@ -44,12 +50,15 @@ $action_url = $is_edit ? base_url('admin/usuarios/editar/' . esc($usuario['id'])
                 <div class="form-group">
                     <label for="usuario">Usuario <span class="text-danger">*</span></label>
                     <input type="text" name="usuario" id="usuario" required 
-                           value="<?= old('usuario', $is_edit ? $usuario['usuario'] : ''); ?>">
+                            value="<?= old('usuario', $is_edit ? $usuario['usuario'] : ''); ?>">
                 </div>
 
                 <div class="form-group">
                     <label for="pass">Contraseña <?= !$is_edit ? '<span class="text-danger">*</span>' : '(Solo si desea cambiarla)'; ?></label>
                     <input type="password" name="pass" id="pass" value=""> 
+                    <?php if (session()->has('errors') && isset($errors['pass'])): ?>
+                        <p class="text-danger" style="margin-top: 5px; font-size: 12px; color: #dc3545;"><?= esc($errors['pass']); ?></p>
+                    <?php endif; ?>
                 </div>
                 
                 <div class="form-group">
@@ -66,19 +75,19 @@ $action_url = $is_edit ? base_url('admin/usuarios/editar/' . esc($usuario['id'])
                 <div class="form-group">
                     <label for="nombre">Nombre <span class="text-danger">*</span></label>
                     <input type="text" name="nombre" id="nombre" required 
-                           value="<?= old('nombre', $is_edit ? $usuario['nombre'] : ''); ?>">
+                            value="<?= old('nombre', $is_edit ? $usuario['nombre'] : ''); ?>">
                 </div>
 
                 <div class="form-group">
                     <label for="apellido">Apellido <span class="text-danger">*</span></label>
                     <input type="text" name="apellido" id="apellido" required 
-                           value="<?= old('apellido', $is_edit ? $usuario['apellido'] : ''); ?>">
+                            value="<?= old('apellido', $is_edit ? $usuario['apellido'] : ''); ?>">
                 </div>
 
                 <div class="form-group">
                     <label for="correo">Correo Electrónico <span class="text-danger">*</span></label>
                     <input type="email" name="correo" id="correo" required 
-                           value="<?= old('correo', $is_edit ? $usuario['correo'] : ''); ?>">
+                            value="<?= old('correo', $is_edit ? $usuario['correo'] : ''); ?>">
                 </div>
             </div>
 
@@ -89,26 +98,26 @@ $action_url = $is_edit ? base_url('admin/usuarios/editar/' . esc($usuario['id'])
                 <div class="form-group">
                     <label for="id_membresia">Membresía ID <span class="text-danger">*</span></label>
                     <input type="number" name="id_membresia" id="id_membresia" required 
-                           value="<?= old('id_membresia', $is_edit ? $usuario['id_membresia'] : '1'); ?>">
+                            value="<?= old('id_membresia', $is_edit ? $usuario['id_membresia'] : '1'); ?>">
                 </div>
 
                 <div class="form-group">
                     <label for="fecha_nacimiento">Fecha de Nacimiento</label>
                     <input type="date" name="fecha_nacimiento" id="fecha_nacimiento" 
-                           value="<?= old('fecha_nacimiento', $is_edit ? $usuario['fecha_nacimiento'] : ''); ?>">
+                            value="<?= old('fecha_nacimiento', $is_edit ? $usuario['fecha_nacimiento'] : ''); ?>">
                 </div>
 
                 <div class="form-group">
                     <label for="fecha_inicio_membresia">Fecha Inicio Membresía <span class="text-danger">*</span></label>
                     <input type="date" name="fecha_inicio_membresia" id="fecha_inicio_membresia" required 
-                           value="<?= old('fecha_inicio_membresia', $is_edit ? $usuario['fecha_inicio_membresia'] : date('Y-m-d')); ?>">
+                            value="<?= old('fecha_inicio_membresia', $is_edit ? $usuario['fecha_inicio_membresia'] : date('Y-m-d')); ?>">
                 </div>
 
                 <div class="form-group">
                     <label for="fecha_fin_membresia">Fecha Fin Membresía <span class="text-danger">*</span></label>
                     <input type="date" name="fecha_fin_membresia" id="fecha_fin_membresia" required 
-                           value="<?= old('fecha_fin_membresia', $is_edit ? $usuario['fecha_fin_membresia'] : ''); ?>">
-                </div>
+                            value="<?= old('fecha_fin_membresia', $is_edit ? $usuario['fecha_fin_membresia'] : date('Y-m-d', strtotime('+4 months'))); ?>">
+                            </div>
             </div>
         </div>
 
