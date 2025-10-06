@@ -12,7 +12,7 @@ class UsuarioModel extends Model
     protected $createdField = 'created_at';
     protected $updatedField = 'updated_at';
     protected $allowedFields = [
-        'usuario', 'correo', 'pass', 'nombre', 'apellido', 'rol',  // Removí pass_confirm
+        'usuario', 'correo', 'pass', 'nombre', 'apellido', 'rol', 
         'id_membresia', 'fecha_nacimiento', 'fecha_inicio_membresia',
         'fecha_fin_membresia', 'created_at', 'updated_at'
     ];
@@ -97,6 +97,18 @@ class UsuarioModel extends Model
     {
         return $this->select('usuarios.id, usuarios.usuario, usuarios.nombre, usuarios.apellido, usuarios.correo, usuarios.rol, tipos_membresia.nombre AS nombre_membresia')
                     ->join('tipos_membresia', 'tipos_membresia.id = usuarios.id_membresia', 'left')
+                    ->findAll();
+    }
+    
+    /**
+     * Obtiene todos los usuarios asociados a una membresía específica.
+     * Alias 'id_usuario' usado para que la vista lo reconozca.
+     */
+    public function getUsuariosByMembresia(int $idMembresia)
+    {
+        return $this->select('usuarios.id AS id_usuario, usuarios.usuario, usuarios.nombre, usuarios.apellido, usuarios.correo, usuarios.fecha_inicio_membresia, usuarios.fecha_fin_membresia')
+                    ->where('id_membresia', $idMembresia)
+                    ->orderBy('usuarios.apellido', 'ASC')
                     ->findAll();
     }
 }

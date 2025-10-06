@@ -3,12 +3,13 @@
 <?= $this->section('contenido') ?>
 
 <header class="main-header">
-    <h2><?= isset($disco) ? 'Editar Disco: ' . esc($disco['titulo'] ?? '') : 'Crear Nuevo Disco' ?></h2>
+    <!-- $disco->titulo ahora siempre funcionará para editar -->
+    <h2><?= isset($disco) && isset($disco->id) ? 'Editar Disco: ' . esc($disco->titulo ?? '') : 'Crear Nuevo Disco' ?></h2>
 </header>
 
 <div class="page-grid">
     <div class="card">
-        <h3 class="card-title"><?= isset($disco) ? 'Actualizar Información' : 'Llenar los datos' ?></h3>
+        <h3 class="card-title"><?= isset($disco) && isset($disco->id) ? 'Actualizar Información' : 'Llenar los datos' ?></h3>
         
         <?php if (session()->getFlashdata('success')): ?>
             <div style="background-color: #1a4f38; color: #10B981; padding: 10px; border-radius: 8px; margin-bottom: 20px;">
@@ -17,7 +18,7 @@
         <?php endif; ?>
         
         <?php $validation = \Config\Services::validation(); ?>
-        <?php if (isset($validation) && $validation->getErrors()): // Condición ajustada ?>
+        <?php if (isset($validation) && $validation->getErrors()): ?>
             <div style="background-color: #5c1a1a; color: #F87171; padding: 10px; border-radius: 8px; margin-bottom: 20px;">
                 <ul>
                     <?php foreach ($validation->getErrors() as $error): ?>
@@ -27,7 +28,13 @@
             </div>
         <?php endif; ?>
 
-        <?= form_open(isset($disco) && isset($disco->id) ? 'admin/discos/actualizar/' . $disco->id : 'admin/discos/guardar') ?>
+        <!-- La URL ahora se construye correctamente si $disco tiene un ID válido -->
+        <?= form_open(isset($disco->id) ? 'admin/discos/actualizar/' . $disco->id : 'admin/discos/guardar') ?>
+        
+            <!-- **CAMPO OCULTO DE ID:** Aunque el ID va en la URL, se añade este campo por seguridad. -->
+            <?php if (isset($disco->id)): ?>
+                <input type="hidden" name="id" value="<?= esc($disco->id) ?>">
+            <?php endif; ?>
         
             <div class="form-grid">
                 <div class="form-group">
@@ -63,9 +70,11 @@
                     <select id="categoria_id" name="categoria_id">
                         <option value="">Seleccione una categoría</option>
                         <?php 
+                        // Utilizamos set_value para mantener el valor en caso de error de validación,
+                        // o el valor original ($disco->id_categoria) si es la carga inicial de edición.
                         $selected_cat = set_value('categoria_id', $disco->id_categoria ?? '');
                         foreach ($categorias as $cat): ?>
-                            <option value="<?= $cat['id'] ?>" <?= ($cat['id'] == $selected_cat) ? 'selected' : '' ?>>
+                            <option value="<?= $cat['id'] ?>" <?= ((string)$cat['id'] === (string)$selected_cat) ? 'selected' : '' ?>>
                                 <?= esc($cat['nom_categoria']) ?>
                             </option>
                         <?php endforeach; ?>
@@ -76,7 +85,7 @@
 
             <div class="form-actions">
                 <button type="submit" class="btn-primary">
-                    <?= isset($disco) && isset($disco->id) ? 'Guardar Cambios' : 'Crear Disco' ?>
+                    <?= isset($disco->id) ? 'Guardar Cambios' : 'Crear Disco' ?>
                 </button>
                 <a href="<?= base_url('admin/discos') ?>" style="margin-left: 15px; color: #A0AEC0; text-decoration: none;">
                     Cancelar y Volver

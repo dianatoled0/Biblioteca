@@ -25,6 +25,8 @@
         .dashboard-container {
             display: flex;
             width: 100%;
+            /* AJUSTE PARA SCROLL DE CONTENIDO */
+            height: 100vh; 
         }
         /* --- ESTILOS DE LA BARRA LATERAL --- */
         .sidebar {
@@ -33,8 +35,23 @@
             padding: 24px;
             display: flex;
             flex-direction: column;
+            /* AJUSTE PARA SCROLL DE CONTENIDO */
             flex-shrink: 0;
+            height: 100vh; 
+            overflow-y: auto; 
+            position: sticky; 
+            top: 0;
+            /* FIN AJUSTE PARA SCROLL DE CONTENIDO */
             border-right: 1px solid #2C2A3B;
+        }
+        /* AÑADIDO: Estilo de la barra de desplazamiento para el sidebar si es necesario hacer scroll */
+        .sidebar::-webkit-scrollbar {
+            width: 8px;
+            background: transparent;
+        }
+        .sidebar::-webkit-scrollbar-thumb {
+            background-color: #2C2A3B; /* Color del thumb (pulgar) */
+            border-radius: 4px;
         }
         .sidebar-header {
             display: flex;
@@ -91,9 +108,30 @@
         .main-content-wrapper {
             flex-grow: 1;
             padding: 40px;
-            overflow-y: auto;
+            overflow-y: auto; /* ESTO PERMITE EL SCROLL SÓLO EN ESTA SECCIÓN */
         }
         
+        /* >>>>>>>>>>> ESTILOS DE LA BARRA DE DESPLAZAMIENTO (SCROLLBAR) <<<<<<<<<<< */
+        /* 1. Definir el ancho de la barra */
+        .main-content-wrapper::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        /* 2. Estilo del Rastrillo (Track) */
+        .main-content-wrapper::-webkit-scrollbar-track {
+            background: #201D2E; /* Fondo oscuro, similar al sidebar */
+        }
+        /* 3. Estilo del Pulgar (Thumb) */
+        .main-content-wrapper::-webkit-scrollbar-thumb {
+            background-color: #6D28D9; /* Color morado de tu tema */
+            border-radius: 4px; /* Bordes redondeados */
+        }
+        /* 4. Estilo del Pulgar al pasar el ratón */
+        .main-content-wrapper::-webkit-scrollbar-thumb:hover {
+            background-color: #5b21b6; /* Un morado más oscuro al pasar el ratón */
+        }
+        /* >>>>>>>>>>> FIN ESTILOS DE LA BARRA DE DESPLAZAMIENTO <<<<<<<<<<< */
+
         .main-content {
             display: block;
         }
@@ -251,7 +289,8 @@
     </style>
 </head>
 <body>
-        <?php
+    
+    <?php
     // LÓGICA DE ACTIVACIÓN DEL MENÚ
     // ----------------------------------------------------
     $uri = service('uri');
@@ -276,12 +315,13 @@
     }
     // ----------------------------------------------------
     ?>
+    
     <div class="dashboard-container">
         <aside class="sidebar">
             <div class="sidebar-header">
                 <svg width="32" height="32" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                     <path d="M12 3c-3.866 0-7 3.134-7 7v2h2v-2a5 5 0 0 1 10 0v2h2v-2c0-3.866-3.134-7-7-7z"
-                          fill="#8B5CF6"/>
+                            fill="#8B5CF6"/>
                     <rect x="3" y="10" width="4" height="7" rx="1" ry="1" fill="#8B5CF6"/>
                     <rect x="17" y="10" width="4" height="7" rx="1" ry="1" fill="#8B5CF6"/>
                     <rect x="11" y="19" width="2" height="2" rx="0.5" ry="0.5" fill="#8B5CF6"/>

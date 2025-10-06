@@ -11,7 +11,6 @@ class DiscoController extends BaseController
 
     public function __construct()
     {
-        // Asegúrate de que CategoriaModel exista en app/Models/
         $this->discoModel = new DiscoModel();
         $this->categoriaModel = new CategoriaModel(); 
         helper(['form', 'url']); 
@@ -37,39 +36,33 @@ class DiscoController extends BaseController
     {
         $input = $this->request->getPost();
         
-        // **CORRECCIÓN CRÍTICA:** Mapeamos los nombres del formulario 
-        // ('precio', 'categoria_id') a los nombres de la DB/Modelo 
-        // ('precio_venta', 'id_categoria').
         $data_to_validate_and_save = [
             'titulo'        => $input['titulo'] ?? null,
             'artista'       => $input['artista'] ?? null,
+            // Importante: Mapeamos 'precio' del formulario a 'precio_venta' de la DB/Modelo
             'precio_venta'  => $input['precio'] ?? null, 
             'stock'         => $input['stock'] ?? null,
             'id_categoria'  => $input['categoria_id'] ?? null
         ];
 
-        // 1. Cargar la validación y **validar el array mapeado**
         $validation = \Config\Services::validation();
         $validation->setRules($this->discoModel->validationRules, $this->discoModel->validationMessages);
         
         if (! $validation->run($data_to_validate_and_save))
         {
-            // Si la validación falla, regresamos al formulario con los errores y los datos
             return view('admin/discos/form', [
                 'validation' => $validation,
-                // Pasamos los datos como objeto para que set_value() funcione correctamente.
+                // Siempre pasamos los datos como objeto
                 'disco'      => (object)$data_to_validate_and_save, 
                 'categorias' => $this->categoriaModel->findAll()
             ]);
         }
         
-        // 2. Si es válido, intentamos guardar
         $saved = $this->discoModel->save($data_to_validate_and_save);
 
         if ($saved) {
             session()->setFlashdata('success', 'Disco creado exitosamente.');
         } else {
-            // Manejo de error para fallos en la DB
             $error_message = 'ERROR CRÍTICO: El disco no se pudo guardar. La base de datos rechazó la inserción.';
             session()->setFlashdata('error', $error_message);
             return redirect()->to(base_url('admin/discos/crear'))->withInput();
@@ -88,7 +81,9 @@ class DiscoController extends BaseController
         }
         
         $data = [
-            'disco' => $disco,
+            // **CORRECCIÓN CLAVE:** Convertimos el array a objeto. 
+            // Esto asegura que la vista acceda a los datos como $disco->id en lugar de $disco['id'].
+            'disco' => (object)$disco, 
             'categorias' => $this->categoriaModel->findAll()
         ];
 
@@ -97,6 +92,12 @@ class DiscoController extends BaseController
 
     public function actualizar($id = null)
     {
+        // 1. Verificamos que el ID sea válido
+        if (empty($id) || !$this->discoModel->find($id)) {
+             session()->setFlashdata('error', 'Error de actualización: Disco ID no válido o inexistente.');
+             return redirect()->to(base_url('admin/discos'));
+        }
+
         $input = $this->request->getPost();
         
         // Mapeo de datos para la validación de actualización
@@ -108,20 +109,28 @@ class DiscoController extends BaseController
             'id_categoria'  => $input['categoria_id'] ?? null
         ];
         
-        // Validamos el array mapeado
         $validation = \Config\Services::validation();
         $validation->setRules($this->discoModel->validationRules, $this->discoModel->validationMessages);
         
         if (! $validation->run($data_to_validate_and_save))
         {
-            // Si falla, regresamos la validación
+            // Si falla, necesitamos los datos que el usuario ingresó + el ID original
+            $disco_original = $this->discoModel->find($id);
+            if ($disco_original) {
+                 // Fusionamos los datos POST (para set_value) con el ID original
+                 $data_for_form = array_merge($disco_original, $data_to_validate_and_save);
+            } else {
+                 $data_for_form = $data_to_validate_and_save;
+            }
+
             return view('admin/discos/form', [
                 'validation' => $validation,
-                'disco'      => $this->discoModel->find($id),
+                'disco'      => (object)$data_for_form, // Lo pasamos como objeto
                 'categorias' => $this->categoriaModel->findAll()
             ]);
         }
         
+        // Realizamos la actualización usando el ID de la URL
         $this->discoModel->update($id, $data_to_validate_and_save);
 
         session()->setFlashdata('success', 'Disco actualizado exitosamente.');

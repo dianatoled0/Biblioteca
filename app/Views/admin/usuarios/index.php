@@ -56,15 +56,18 @@ $this->extend('admin/layout');
                                 <td><span class="status status-<?= $status_class; ?>"><?= ucfirst(esc($usuario['rol'])); ?></span></td>
                                 <td><?= esc($usuario['nombre_membresia']); ?></td>
                                 <td class="table-actions">
+                                    
                                     <a href="<?= base_url('admin/usuarios/editar/' . esc($usuario['id'])); ?>" title="Editar">
-                                        <svg class="icon" viewBox="0 0 24 24"><path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"></path></svg>
+                                        <svg class="icon" viewBox="0 0 24 24" stroke="white" fill="white"><path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"></path></svg>
                                     </a>
+                                    
                                     <form action="<?= base_url('admin/usuarios/eliminar/' . esc($usuario['id'])); ?>" method="post" class="d-inline" onsubmit="return confirm('¿Está seguro de que desea eliminar este usuario?');" style="display: inline;">
                                         <?= csrf_field(); ?>
                                         <button type="submit" style="background: none; border: none; padding: 0; color: inherit; cursor: pointer;" title="Eliminar">
-                                            <svg class="icon" viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+                                            <svg class="icon" viewBox="0 0 24 24" stroke="white" fill="white"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
                                         </button>
                                     </form>
+                                    
                                 </td>
                             </tr>
                         <?php endforeach; ?>

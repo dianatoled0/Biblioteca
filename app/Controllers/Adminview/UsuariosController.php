@@ -31,52 +31,36 @@ class UsuariosController extends BaseController
 
     public function guardar()
     {
-        // DEBUG TEMPORAL: Siempre imprime POST (no se redirige antes)
-        $post_data = $this->request->getPost();
-        echo "<h3 style='color: red; background: yellow; padding: 10px;'>DEBUG: POST Recibido</h3>";
-        echo "<pre style='background: #f0f0f0; padding: 10px; border: 1px solid #ccc;'>";
-        print_r($post_data);
-        echo "</pre>";
-        echo "<h3 style='color: red;'>DEBUG Pass: '" . $this->request->getPost('pass') . "' | Pass Confirm: '" . $this->request->getPost('pass_confirm') . "'</h3>";
-        // FIN DEBUG – NO BORRES AÚN
-
-        // Preparar datos básicos (sin validación estricta para test)
+        // 1. Preparar datos del POST
         $data = [
-            'usuario' => $this->request->getPost('usuario') ?: 'test_default',
-            'correo' => $this->request->getPost('correo') ?: 'test@example.com',
-            'pass' => $this->request->getPost('pass') ?: 'defaultpass', // Default si vacío
-            'nombre' => $this->request->getPost('nombre') ?: 'Test',
-            'apellido' => $this->request->getPost('apellido') ?: 'User',
-            'rol' => $this->request->getPost('rol') ?: 'usuario',
-            'id_membresia' => $this->request->getPost('id_membresia') ?: 1,
-            'fecha_nacimiento' => $this->request->getPost('fecha_nacimiento') ?: null,
-            'fecha_inicio_membresia' => $this->request->getPost('fecha_inicio_membresia') ?: date('Y-m-d'),
-            'fecha_fin_membresia' => $this->request->getPost('fecha_fin_membresia') ?: date('Y-m-d', strtotime('+3 months')),
+            'usuario' => $this->request->getPost('usuario'),
+            'correo' => $this->request->getPost('correo'),
+            'pass' => $this->request->getPost('pass'),
+            'nombre' => $this->request->getPost('nombre'),
+            'apellido' => $this->request->getPost('apellido'),
+            'rol' => $this->request->getPost('rol'),
+            'id_membresia' => $this->request->getPost('id_membresia'),
+            'fecha_nacimiento' => $this->request->getPost('fecha_nacimiento'),
+            'fecha_inicio_membresia' => $this->request->getPost('fecha_inicio_membresia'),
+            'fecha_fin_membresia' => $this->request->getPost('fecha_fin_membresia'),
         ];
 
-        // TEMPORAL: Hash MD5 manual (bypassa hooks y validación de pass_confirm)
-        if (!empty($data['pass'])) {
-            $data['pass'] = md5($data['pass']);
-            echo "<h3 style='color: green;'>DEBUG: Pass hasheado manual a: " . $data['pass'] . "</h3>";
+        // 2. Aplicar Hash MD5 manualmente (según tu implementación)
+        $pass = $this->request->getPost('pass');
+        if (!empty($pass)) {
+            // Asegúrate de que el campo 'pass_confirm' coincida si tienes validación
+            $data['pass'] = md5($pass); 
         }
 
-        // TEMPORAL: Salta validación completa – inserta directo
-        echo "<h3 style='color: blue;'>DEBUG: Intentando insert con datos:</h3>";
-        echo "<pre>";
-        print_r($data);
-        echo "</pre>";
-
+        // 3. Intentar insertar y redireccionar
         if ($this->usuarioModel->insert($data)) {
-            echo "<h1 style='color: green;'>¡USUARIO CREADO EXITOSAMENTE! ID: " . $this->usuarioModel->insertID() . "</h1>";
-            echo "<p>Ve a phpMyAdmin y chequea la tabla usuarios (pass debe ser MD5).</p>";
-            echo "<a href='" . base_url('admin/usuarios') . "' style='background: green; color: white; padding: 10px;'>Ir a Lista de Usuarios</a>";
-            // Remueve el redirect para ver esto – después lo ponemos
+            // Redirección exitosa a la lista de usuarios (index)
+            return redirect()->to(base_url('admin/usuarios'))->with('success', 'Usuario creado exitosamente. ID: ' . $this->usuarioModel->insertID());
         } else {
-            echo "<h1 style='color: red;'>ERROR en INSERT: " . print_r($this->usuarioModel->errors(), true) . "</h1>";
+            // Manejo de errores (ej: usuario o correo duplicado)
+            // Redirige de vuelta al formulario con los errores y los datos anteriores
+            return redirect()->back()->withInput()->with('errors', $this->usuarioModel->errors());
         }
-
-        // TEMPORAL: No redirige – muestra todo en pantalla para debug
-        // Después, volvemos a redirect()->to('/admin/usuarios')->with('success', 'OK');
     }
 
     public function editar($id)
@@ -91,7 +75,6 @@ class UsuariosController extends BaseController
 
     public function actualizar($id)
     {
-        // TEMPORAL: Usa versión simple para update también
         $data = [
             'usuario' => $this->request->getPost('usuario'),
             'correo' => $this->request->getPost('correo'),
