@@ -9,7 +9,7 @@
 <div class="page-grid">
     <div class="card">
         <h3 class="card-title">Tipos de Membresía Disponibles</h3>
-        
+         
         <?php if (session()->getFlashdata('success')): ?>
             <div style="background-color: #1a4f38; color: #10B981; padding: 10px; border-radius: 8px; margin-bottom: 20px;">
                 <?= session()->getFlashdata('success') ?>

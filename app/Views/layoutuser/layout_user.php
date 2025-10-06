@@ -3,11 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dashboard - Melofy</title>
+    <title>Tienda - Melofy</title>
     
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+    
     <style>
         /* --- ESTILOS GENERALES Y RESET --- */
         * {
@@ -25,7 +26,6 @@
         .dashboard-container {
             display: flex;
             width: 100%;
-            /* AJUSTE PARA SCROLL DE CONTENIDO */
             height: 100vh; 
         }
         /* --- ESTILOS DE LA BARRA LATERAL --- */
@@ -35,13 +35,11 @@
             padding: 24px;
             display: flex;
             flex-direction: column;
-            /* AJUSTE PARA SCROLL DE CONTENIDO */
             flex-shrink: 0;
             height: 100vh; 
             overflow-y: auto; 
             position: sticky; 
             top: 0;
-            /* FIN AJUSTE PARA SCROLL DE CONTENIDO */
             border-right: 1px solid #2C2A3B;
         }
         /* AÑADIDO: Estilo de la barra de desplazamiento para el sidebar si es necesario hacer scroll */
@@ -50,7 +48,7 @@
             background: transparent;
         }
         .sidebar::-webkit-scrollbar-thumb {
-            background-color: #2C2A3B; /* Color del thumb (pulgar) */
+            background-color: #2C2A3B; 
             border-radius: 4px;
         }
         .sidebar-header {
@@ -97,7 +95,7 @@
             height: 24px;
             stroke-width: 2;
             fill: none;
-            stroke: currentColor; /* Esto hace que el color sea gris/blanco según el estado */
+            stroke: currentColor; 
             stroke-linecap: round;
             stroke-linejoin: round;
         }
@@ -108,27 +106,23 @@
         .main-content-wrapper {
             flex-grow: 1;
             padding: 40px;
-            overflow-y: auto; /* ESTO PERMITE EL SCROLL SÓLO EN ESTA SECCIÓN */
+            overflow-y: auto; 
         }
         
         /* >>>>>>>>>>> ESTILOS DE LA BARRA DE DESPLAZAMIENTO (SCROLLBAR) <<<<<<<<<<< */
-        /* 1. Definir el ancho de la barra */
         .main-content-wrapper::-webkit-scrollbar {
             width: 8px;
             height: 8px;
         }
-        /* 2. Estilo del Rastrillo (Track) */
         .main-content-wrapper::-webkit-scrollbar-track {
-            background: #201D2E; /* Fondo oscuro, similar al sidebar */
+            background: #201D2E; 
         }
-        /* 3. Estilo del Pulgar (Thumb) */
         .main-content-wrapper::-webkit-scrollbar-thumb {
-            background-color: #6D28D9; /* Color morado de tu tema */
-            border-radius: 4px; /* Bordes redondeados */
+            background-color: #6D28D9; 
+            border-radius: 4px; 
         }
-        /* 4. Estilo del Pulgar al pasar el ratón */
         .main-content-wrapper::-webkit-scrollbar-thumb:hover {
-            background-color: #5b21b6; /* Un morado más oscuro al pasar el ratón */
+            background-color: #5b21b6; 
         }
         /* >>>>>>>>>>> FIN ESTILOS DE LA BARRA DE DESPLAZAMIENTO <<<<<<<<<<< */
 
@@ -286,16 +280,116 @@
             border-bottom: none;
             padding-bottom: 0;
         }
+
+        /* --- ESTILOS ESPECÍFICOS DE LA TIENDA (DISCOS) --- */
+        .disk-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 24px;
+            margin-top: 24px;
+            margin-bottom: 40px;
+        }
+        .disk-card {
+            background-color: #2C2A3B;
+            border-radius: 12px;
+            padding: 20px;
+            text-align: center;
+            transition: transform 0.2s, box-shadow 0.2s;
+            cursor: pointer;
+        }
+        .disk-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 15px -3px rgba(109, 40, 217, 0.2);
+        }
+        .disk-card h4 {
+            font-size: 18px;
+            font-weight: 600;
+            color: #FFFFFF;
+            margin-bottom: 8px;
+        }
+        .disk-card p {
+            font-size: 14px;
+            color: #A0AEC0;
+            margin-bottom: 4px;
+        }
+        .disk-card .price {
+            font-size: 20px;
+            font-weight: 700;
+            color: #6D28D9;
+            margin-top: 12px;
+        }
+        /* Estilos para el filtro de categorías (botones) */
+        .category-filter {
+            margin-bottom: 32px;
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+        .category-filter button {
+            background-color: #2C2A3B;
+            color: #A0AEC0;
+            border: 1px solid #3e3b52;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 14px;
+            cursor: pointer;
+            transition: background-color 0.2s, color 0.2s, border-color 0.2s;
+        }
+        .category-filter button:hover {
+            background-color: #3e3b52;
+        }
+        .category-filter button.active {
+            background-color: #6D28D9;
+            color: #FFFFFF;
+            border-color: #6D28D9;
+        }
+
+        /* Estilos para Membresía (Cards) */
+        .membership-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 32px;
+        }
+        .membership-card {
+            background-color: #2C2A3B;
+            border-radius: 12px;
+            padding: 30px;
+            transition: box-shadow 0.3s;
+        }
+        .membership-card.current {
+            border: 2px solid #6D28D9;
+            box-shadow: 0 0 15px rgba(109, 40, 217, 0.5);
+        }
+        .membership-card h3 {
+            font-size: 24px;
+            color: #6D28D9;
+            margin-bottom: 15px;
+        }
+        .membership-card .price-tag {
+            font-size: 36px;
+            font-weight: 700;
+            color: #FFFFFF;
+            margin-bottom: 10px;
+        }
+        .membership-card .duration {
+            font-size: 16px;
+            color: #A0AEC0;
+            margin-bottom: 20px;
+        }
     </style>
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    <script src="<?= base_url('js/carrito.js') ?>"></script>
 </head>
 <body>
     
     <?php
-    // LÓGICA DE ACTIVACIÓN DEL MENÚ (IMPLEMENTACIÓN LIMPIA)
+    // LÓGICA DE ACTIVACIÓN DEL MENÚ (Ajustada para Usuario)
     // ----------------------------------------------------
-    // La función is_active() es cargada desde App/Helpers/view_helper.php
-    // Solo necesitamos obtener el servicio URI para los enlaces base_url().
     $uri = service('uri');
+    // El segmento 2 es el controlador, ejemplo: /usuario/membresias -> 'membresias'
+    $segmento_actual = $uri->getSegment(2);
+    
+    // --- FUNCIÓN is_active() ELIMINADA DE AQUÍ y movida al Helper ---
     // ----------------------------------------------------
     ?>
     
@@ -304,7 +398,7 @@
             <div class="sidebar-header">
                 <svg width="32" height="32" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                     <path d="M12 3c-3.866 0-7 3.134-7 7v2h2v-2a5 5 0 0 1 10 0v2h2v-2c0-3.866-3.134-7-7-7z"
-                                fill="#8B5CF6"/>
+                                 fill="#8B5CF6"/>
                     <rect x="3" y="10" width="4" height="7" rx="1" ry="1" fill="#8B5CF6"/>
                     <rect x="17" y="10" width="4" height="7" rx="1" ry="1" fill="#8B5CF6"/>
                     <rect x="11" y="19" width="2" height="2" rx="0.5" ry="0.5" fill="#8B5CF6"/>
@@ -313,45 +407,14 @@
             </div>
             <nav class="sidebar-nav">
                 <ul>
-                    <li class="<?= is_active('dashboard') ?>">
-                        <a href="<?= base_url('admin') ?>">
+                    <li class="<?= is_active('home', $segmento_actual) ?>">
+                        <a href="<?= base_url('usuario') ?>">
                             <svg class="icon" viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg>
-                            <span>Dashboard</span>
+                            <span>Home</span>
                         </a>
                     </li>
-                    <li class="<?= is_active('usuarios') ?>">
-                        <a href="<?= base_url('admin/usuarios') ?>">
-                            <svg class="icon" viewBox="0 0 24 24"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="8.5" cy="7" r="4"></circle><line x1="20" y1="8" x2="20" y2="14"></line><line x1="23" y1="11" x2="17" y2="11"></line></svg>
-                            <span>Usuarios</span>
-                        </a>
-                    </li>
-                    <li class="<?= is_active('categorias') ?>">
-                        <a href="<?= base_url('admin/categorias') ?>">
-                            <svg class="icon" viewBox="0 0 24 24"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"></path></svg>
-                            <span>Categorías</span>
-                        </a>
-                    </li>
-                    <li class="<?= is_active('discos') ?>">
-                        <a href="<?= base_url('admin/discos') ?>">
-                            <svg class="icon" viewBox="0 0 24 24">
-                                <circle cx="12" cy="12" r="10"></circle>
-                                <circle cx="12" cy="12" r="3"></circle>
-                                <path d="M12 2a10 10 0 0 1 7.07 2.93"></path>
-                                <path d="M3.05 12a10 10 0 0 1 7.07-7.07"></path>
-                                <path d="M12 22a10 10 0 0 0 7.07-2.93"></path>
-                                <path d="M20.95 12a10 10 0 0 0-7.07 7.07"></path>
-                            </svg>
-                            <span>Discos</span>
-                        </a>
-                    </li>
-                    <li class="<?= is_active('pedidos') ?>">
-                        <a href="<?= base_url('admin/pedidos') ?>">
-                            <svg class="icon" viewBox="0 0 24 24"><circle cx="9" cy="21" r="1"></circle><circle cx="20" cy="21" r="1"></circle><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"></path></svg>
-                            <span>Pedidos</span>
-                        </a>
-                    </li>
-                    <li class="<?= is_active('membresias') ?>">
-                        <a href="<?= base_url('admin/membresias') ?>">
+                    <li class="<?= is_active('membresias', $segmento_actual) ?>">
+                        <a href="<?= base_url('usuario/membresias') ?>">
                             <svg class="icon" viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
                             <span>Membresías</span>
                         </a>
@@ -359,14 +422,14 @@
                 </ul>
             </nav>
             <div class="sidebar-footer">
-                <a href="<?= base_url('login/logout') ?>"> <svg class="icon" viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg>
+                <a href="<?= base_url('login/logout') ?>"> 
+                    <svg class="icon" viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg>
                     <span>Cerrar sesión</span>
                 </a>
             </div>
         </aside>
         <div class="main-content-wrapper">
-            <?= $this->renderSection('contenido') ?>
-        </div>
+            <?= $this->renderSection('content') ?> </div>
     </div>
 </body>
 </html>
