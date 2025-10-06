@@ -23,14 +23,14 @@ $routes->post('login/autenticar', 'Login::autenticar');
 $routes->get('login/logout', 'Login::logout');
 
 // Rutas usuario (con filtro auth)
-$routes->group('usuario', ['filter' => 'auth'], function($routes) {
+$routes->group('usuario', ['filter' => 'auth'], function ($routes) {
     $routes->get('/', 'Usuario::index'); // controlador Usuario.php
 });
 
 // Rutas administrador (con filtro admin)
-$routes->group('admin', ['namespace' => 'App\Controllers\Adminview', 'filter' => 'admin'], function($routes) {
+$routes->group('admin', ['namespace' => 'App\Controllers\Adminview', 'filter' => 'admin'], function ($routes) {
     // 1. DASHBOARD
-    $routes->get('/', 'Admin::index'); 
+    $routes->get('/', 'Admin::index');
 
     // 2. RUTAS PARA CATEGORÍAS (Llaman a CategoriaController)
     $routes->get('categorias', 'CategoriaController::index');
@@ -48,37 +48,46 @@ $routes->group('admin', ['namespace' => 'App\Controllers\Adminview', 'filter' =>
     $routes->post('discos/actualizar/(:num)', 'DiscoController::actualizar/$1');
     $routes->get('discos/eliminar/(:num)', 'DiscoController::eliminar/$1');
 
-
     // 4. RUTAS DE USUARIOS (Con corrección GET/POST explícita)
     $routes->get('usuarios', 'UsuariosController::index');
-    
+
     // Crear Usuario
-    $routes->get('usuarios/crear', 'UsuariosController::crear'); 
-    $routes->post('usuarios/crear', 'UsuariosController::crear'); 
-    
+    $routes->get('usuarios/crear', 'UsuariosController::crear');
+    $routes->post('usuarios/crear', 'UsuariosController::crear');
+
     // Editar Usuario
     $routes->get('usuarios/editar/(:num)', 'UsuariosController::editar/$1');
     $routes->post('usuarios/editar/(:num)', 'UsuariosController::editar/$1');
-    
+
     $routes->get('usuarios/eliminar/(:num)', 'UsuariosController::eliminar/$1');
 
+    // 5. CRUD MEMBRESÍAS (¡NUEVO! Llama a MembresiaController)
+    // El listado principal (index)
+    $routes->get('membresias', 'MembresiaController::index'); 
+    
+    // CRUD
+    $routes->match(['get', 'post'], 'membresias/crear', 'MembresiaController::crearMembresia');
+    $routes->match(['get', 'post'], 'membresias/editar/(:num)', 'MembresiaController::editarMembresia/$1');
+    $routes->get('membresias/eliminar/(:num)', 'MembresiaController::eliminarMembresia/$1');
 
-    // 5. RUTAS QUE SE MANTIENEN EN Admin.php
-    // Membresías
-    $routes->get('membresias', 'Admin::membresias');
-    $routes->match(['get','post'], 'membresias/crear', 'Admin::crearMembresia');
-    $routes->match(['get','post'], 'membresias/editar/(:num)', 'Admin::editarMembresia/$1');
-    $routes->get('membresias/eliminar/(:num)', 'Admin::eliminarMembresia/$1');
+    // Detalle de usuarios por membresía
+    $routes->get('membresias/usuarios/(:num)', 'MembresiaController::usuarios/$1');
 
+
+    // 6. RUTAS QUE SE MANTIENEN EN Admin.php (Se movió el 5 al 6 y se actualizó la numeración)
     // Tipos de pago
     $routes->get('pagos', 'Admin::pagos');
-    $routes->match(['get','post'], 'pagos/crear', 'Admin::crearPago');
-    $routes->match(['get','post'], 'pagos/editar/(:num)', 'Admin::editarPago/$1');
+    $routes->match(['get', 'post'], 'pagos/crear', 'Admin::crearPago');
+    $routes->match(['get', 'post'], 'pagos/editar/(:num)', 'Admin::editarPago/$1');
     $routes->get('pagos/eliminar/(:num)', 'Admin::eliminarPago/$1');
 
     // Ingresos
     $routes->get('ingresos', 'Admin::ingresos');
-    $routes->match(['get','post'], 'ingresos/crear', 'Admin::crearIngreso');
+    $routes->match(['get', 'post'], 'ingresos/crear', 'Admin::crearIngreso');
+
+    // 7. RUTAS PARA PEDIDOS (Llaman a PedidoController)
+    $routes->get('pedidos', 'PedidoController::index');
+    $routes->get('pedidos/detalle/(:num)', 'PedidoController::verDetalle/$1');
 
     // Recibos
     $routes->get('recibos', 'Admin::recibos');

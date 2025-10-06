@@ -113,4 +113,31 @@ class UsuarioModel extends Model
             'valid_date' => 'Formato de fecha fin inválido.',
         ],
     ];
+
+    // -------------------------------------------------------------------------
+    // |                     MÉTODO REQUERIDO PARA MEMBRESÍAS                  |
+    // -------------------------------------------------------------------------
+
+    /**
+     * Obtiene todos los usuarios que tienen una membresía específica,
+     * incluyendo el nombre de la membresía.
+     * @param int $idMembresia ID de la membresía a filtrar.
+     * @return array
+     */
+    public function getUsuariosByMembresia(int $idMembresia): array
+    {
+        // 1. SELECT: Seleccionamos los campos necesarios y renombramos (AS) para evitar conflictos.
+        return $this->select('usuarios.id AS id_usuario, usuarios.usuario, usuarios.correo, 
+                             tipos_membresia.id AS membresia_id, tipos_membresia.nombre AS membresia_nombre,
+                             usuarios.fecha_inicio_membresia, usuarios.fecha_fin_membresia')
+                    
+                    // 2. JOIN: Conectamos la tabla 'usuarios' con 'tipos_membresia'.
+                    ->join('tipos_membresia', 'tipos_membresia.id = usuarios.id_membresia')
+                    
+                    // 3. WHERE: Filtramos por el ID de la membresía.
+                    ->where('usuarios.id_membresia', $idMembresia)
+                    
+                    // 4. FIND: Ejecutamos la consulta y devolvemos los resultados.
+                    ->findAll();
+    }
 }

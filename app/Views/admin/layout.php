@@ -1,4 +1,4 @@
-<!DOCTYPE html> 
+<!DOCTYPE html>
 <html lang="es">
 <head>
     <meta charset="UTF-8">
@@ -8,7 +8,6 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
-
     <style>
         /* --- ESTILOS GENERALES Y RESET --- */
         * {
@@ -16,7 +15,6 @@
             padding: 0;
             box-sizing: border-box;
         }
-
         body {
             font-family: 'Poppins', sans-serif;
             background-color: #1A1625;
@@ -24,12 +22,10 @@
             display: flex;
             min-height: 100vh;
         }
-
         .dashboard-container {
             display: flex;
             width: 100%;
         }
-
         /* --- ESTILOS DE LA BARRA LATERAL --- */
         .sidebar {
             width: 260px;
@@ -40,28 +36,23 @@
             flex-shrink: 0;
             border-right: 1px solid #2C2A3B;
         }
-
         .sidebar-header {
             display: flex;
             align-items: center;
             gap: 12px;
             margin-bottom: 40px;
         }
-
         .sidebar-header h1 {
             font-size: 24px;
             font-weight: 600;
             color: #FFFFFF;
         }
-
         .sidebar-nav {
             flex-grow: 1;
         }
-
         .sidebar-nav ul {
             list-style: none;
         }
-
         .sidebar-nav ul li a, .sidebar-footer a {
             display: flex;
             align-items: center;
@@ -74,18 +65,15 @@
             transition: background-color 0.2s, color 0.2s;
             cursor: pointer;
         }
-
         .sidebar-nav ul li a:hover {
             background-color: #2C2A3B;
             color: #FFFFFF;
         }
-
         /* ESTILO CLAVE: Esta es la clase que aplica el morado de selección */
-        .sidebar-nav ul li.active a { 
+        .sidebar-nav ul li.active a {
             background-color: #6D28D9;
             color: #FFFFFF;
         }
-
         /* NOTA: Estos estilos SÍ APLICAN A TODOS LOS ÍCONOS DE LA BARRA LATERAL (NO AL LOGO DE MELOFY) */
         .sidebar-nav .icon, .sidebar-footer .icon {
             width: 24px;
@@ -96,11 +84,9 @@
             stroke-linecap: round;
             stroke-linejoin: round;
         }
-
         .sidebar-footer {
             margin-top: auto;
         }
-
         /* --- ESTILOS DEL CONTENEDOR PRINCIPAL --- */
         .main-content-wrapper {
             flex-grow: 1;
@@ -111,19 +97,17 @@
         .main-content {
             display: block;
         }
-
         .main-header h2 {
             font-size: 32px;
             font-weight: 600;
             margin-bottom: 32px;
         }
-
         /* --- ESTILOS DE COMPONENTES (TARJETAS, FORMULARIOS, TABLAS) --- */
         
         /* Contenedores y Grids */
         .dashboard-grid {
             display: grid;
-            grid-template-columns: 1fr; 
+            grid-template-columns: 1fr;
             gap: 32px;
         }
         
@@ -132,13 +116,11 @@
             grid-template-columns: 1fr;
             gap: 32px;
         }
-
         .card {
             background-color: #201D2E;
             border-radius: 12px;
             padding: 24px;
         }
-
         .card-title {
             font-size: 18px;
             font-weight: 600;
@@ -146,29 +128,24 @@
             padding-bottom: 16px;
             border-bottom: 1px solid #2C2A3B;
         }
-
         /* Formularios */
         .form-grid {
             display: grid;
             grid-template-columns: repeat(2, 1fr);
             gap: 24px;
         }
-
         .form-group {
             display: flex;
             flex-direction: column;
         }
-
         .form-group.form-group-full {
             grid-column: 1 / -1;
         }
-
         .form-group label {
             font-size: 14px;
             color: #A0AEC0;
             margin-bottom: 8px;
         }
-
         .form-group input, .form-group select {
             width: 100%;
             padding: 12px 16px;
@@ -180,15 +157,12 @@
             font-family: 'Poppins', sans-serif;
             transition: border-color 0.2s, box-shadow 0.2s;
         }
-
         .form-group input:focus, .form-group select:focus {
             outline: none;
             border-color: #6D28D9;
             box-shadow: 0 0 0 3px rgba(109, 40, 217, 0.4);
         }
-
         .form-group input::placeholder { color: #718096; }
-
         .form-group select {
             appearance: none;
             background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%23A0AEC0' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e");
@@ -197,9 +171,7 @@
             background-size: 1.5em 1.5em;
             padding-right: 2.5rem;
         }
-
         .form-actions { margin-top: 32px; }
-
         .btn-primary {
             background-color: #6D28D9;
             color: #FFFFFF;
@@ -254,7 +226,6 @@
         .status-completed { background-color: rgba(16, 185, 129, 0.1); color: #10B981; }
         .status-pending { background-color: rgba(245, 158, 11, 0.1); color: #F59E0B; }
         .status-shipped { background-color: rgba(59, 130, 246, 0.1); color: #3B82F6; }
-
         .table-actions a {
             color: #A0AEC0;
             text-decoration: none;
@@ -263,7 +234,6 @@
         }
         .table-actions a:hover { color: #FFFFFF; }
         .table-actions .icon { width: 20px; height: 20px; }
-
         /* Notificaciones */
         .notifications-list ul {
             list-style: none;
@@ -281,25 +251,23 @@
     </style>
 </head>
 <body>
-    
-    <?php 
+        <?php
     // LÓGICA DE ACTIVACIÓN DEL MENÚ
     // ----------------------------------------------------
     $uri = service('uri');
     // El segmento 2 es el controlador, ejemplo: /admin/categorias -> 'categorias'
-    $segmento_actual = $uri->getSegment(2); 
-
+    $segmento_actual = $uri->getSegment(2);
     /**
      * Devuelve la clase 'active' si el segmento actual coincide con el nombre del enlace.
      * @param string $segment_name Nombre del enlace (ej: 'categorias').
      * @return string
      */
-    function is_active(string $segment_name, ?string $current_segment): string 
+    function is_active(string $segment_name, ?string $current_segment): string
     {
         // Caso especial para el Dashboard: si el segmento es vacío o 'admin' (ruta base)
         if ($segment_name === 'admin') {
             // getSegment(2) en /admin/ puede ser vacío o 'admin' dependiendo de la config.
-            if (empty($current_segment)) { 
+            if (empty($current_segment)) {
                 return 'active';
             }
         }
@@ -308,12 +276,11 @@
     }
     // ----------------------------------------------------
     ?>
-
     <div class="dashboard-container">
         <aside class="sidebar">
             <div class="sidebar-header">
                 <svg width="32" height="32" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <path d="M12 3c-3.866 0-7 3.134-7 7v2h2v-2a5 5 0 0 1 10 0v2h2v-2c0-3.866-3.134-7-7-7z" 
+                    <path d="M12 3c-3.866 0-7 3.134-7 7v2h2v-2a5 5 0 0 1 10 0v2h2v-2c0-3.866-3.134-7-7-7z"
                           fill="#8B5CF6"/>
                     <rect x="3" y="10" width="4" height="7" rx="1" ry="1" fill="#8B5CF6"/>
                     <rect x="17" y="10" width="4" height="7" rx="1" ry="1" fill="#8B5CF6"/>
@@ -354,8 +321,8 @@
                             <span>Discos</span>
                         </a>
                     </li>
-                    <li class="<?= is_active('recibos', $segmento_actual) ?>">
-                        <a href="<?= base_url('admin/recibos') ?>">
+                    <li class="<?= is_active('pedidos', $segmento_actual) ?>">
+                        <a href="<?= base_url('admin/pedidos') ?>">
                             <svg class="icon" viewBox="0 0 24 24"><circle cx="9" cy="21" r="1"></circle><circle cx="20" cy="21" r="1"></circle><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"></path></svg>
                             <span>Pedidos</span>
                         </a>
@@ -366,7 +333,7 @@
                             <span>Membresías</span>
                         </a>
                     </li>
-                    </ul>
+                </ul>
             </nav>
             <div class="sidebar-footer">
                 <a href="<?= base_url('login/logout') ?>"> <svg class="icon" viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg>
@@ -374,11 +341,9 @@
                 </a>
             </div>
         </aside>
-
         <div class="main-content-wrapper">
-            <?= $this->renderSection('contenido') ?> 
+            <?= $this->renderSection('contenido') ?>
         </div>
     </div>
-
 </body>
 </html>

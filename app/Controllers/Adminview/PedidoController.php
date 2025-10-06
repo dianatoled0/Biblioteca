@@ -1,44 +1,47 @@
-<?php
-
-namespace App\Controllers\Admin;
+<?php namespace App\Controllers\Adminview;
 
 use App\Controllers\BaseController;
-use App\Models\ReciboModel;
+use App\Models\PedidoModel;
 
-class ReciboController extends BaseController
+class PedidoController extends BaseController
 {
-    protected $reciboModel;
+    protected $pedidoModel;
 
     public function __construct()
     {
-        $this->reciboModel = new ReciboModel();
+        $this->pedidoModel = new PedidoModel();
+        helper(['url']); 
     }
 
     /**
-     * Listado de recibos
+     * Muestra el listado de todos los pedidos. (Ruta: /admin/pedidos)
      */
     public function index()
     {
-        $data['recibos'] = $this->reciboModel->getRecibosConUsuario();
-
-        return view('admin/recibos/index', $data);
+        $data = [
+            'pedidos' => $this->pedidoModel->getPedidosConUsuario()
+        ];
+        
+        // Carga la vista de listado de pedidos
+        return view('admin/pedidos/index', $data);
     }
 
     /**
-     * Detalle de un recibo con sus discos
+     * Muestra la vista de detalle para un pedido específico. (Ruta: /admin/pedidos/detalle/ID)
+     * NOTA: Este es un placeholder. La lógica para cargar el detalle_pedidos va aquí.
      */
-    public function detalle($id)
+    public function verDetalle($id = null)
     {
-        $recibo = $this->reciboModel->getReciboConDetalles($id);
-
-        if (!$recibo) {
-            return redirect()->to(base_url('admin/recibos'))
-                ->with('error', 'El recibo no existe o fue eliminado.');
+        if (is_null($id) || !$this->pedidoModel->find($id)) {
+            session()->setFlashdata('error', 'Pedido no encontrado.');
+            return redirect()->to(base_url('admin/pedidos'));
         }
+        
+        // --- AQUÍ VA LA LÓGICA DE DETALLE DE PEDIDO (Implementaremos esto después) ---
+        session()->setFlashdata('info', "¡Aún en desarrollo! Se mostrará el detalle del Pedido #{$id} y sus productos.");
+        return redirect()->to(base_url('admin/pedidos'));
 
-        $data['recibo'] = $recibo;
-
-        return view('admin/recibos/detalle', $data);
+        // Ejemplo de cómo se llamaría la vista de detalle:
+        // return view('admin/pedidos/detalle', $data_detalle);
     }
 }
-

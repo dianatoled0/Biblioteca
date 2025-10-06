@@ -1,13 +1,12 @@
 <?php namespace App\Controllers\Adminview;
 
 use App\Controllers\BaseController;
-use App\Models\MembresiaModel;
 use App\Models\PagoModel;
 use App\Models\IngresoModel;
 use App\Models\ReciboModel;
 
-// NOTA IMPORTANTE: Hemos quitado CategoriaModel, DiscoModel, y UsuarioModel
-// porque sus CRUDs ya están en controladores dedicados.
+// NOTA: Se ha quitado el modelo de Membresias, ya que su lógica
+// y CRUD completo están ahora en el controlador dedicado 'MembresiaController.php'.
 
 class Admin extends BaseController 
 {
@@ -21,51 +20,11 @@ class Admin extends BaseController
 
     /* =========================
      * CRUD MEMBRESÍAS
+     * ESTAS FUNCIONES FUERON MOVIDAS A MembresiaController.php
      * ========================= */
-    public function membresias()
-    {
-        $model = new MembresiaModel();
-        $data['membresias'] = $model->findAll();
-        return view('admin/membresias/index', $data);
-    }
-
-    public function crearMembresia()
-    {
-        $model = new MembresiaModel();
-        if ($this->request->getMethod() === 'post') {
-            // Asegúrate de usar $model->save() con la data de la DB
-            $model->save([
-                'nombre' => $this->request->getPost('nombre'),
-                'precio' => $this->request->getPost('precio'),
-                'duracion_meses' => $this->request->getPost('duracion_meses')
-            ]);
-            return redirect()->to('/admin/membresias');
-        }
-        return view('admin/membresias/crear');
-    }
-
-    public function editarMembresia($id)
-    {
-        $model = new MembresiaModel();
-        if ($this->request->getMethod() === 'post') {
-            $model->update($id, [
-                'nombre' => $this->request->getPost('nombre'),
-                'precio' => $this->request->getPost('precio'),
-                'duracion_meses' => $this->request->getPost('duracion_meses')
-            ]);
-            return redirect()->to('/admin/membresias');
-        }
-        $data['membresia'] = $model->find($id);
-        return view('admin/membresias/editar', $data);
-    }
-
-    public function eliminarMembresia($id)
-    {
-        $model = new MembresiaModel();
-        $model->delete($id);
-        return redirect()->to('/admin/membresias');
-    }
-
+    // Las funciones membresias(), crearMembresia(), editarMembresia(), y eliminarMembresia()
+    // deben ser eliminadas de este archivo para evitar el error y mantener la organización.
+    
     /* =========================
      * CRUD TIPOS DE PAGO
      * ========================= */
