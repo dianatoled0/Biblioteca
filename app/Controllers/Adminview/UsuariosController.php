@@ -1,121 +1,128 @@
-<?php namespace App\Controllers\Adminview;
+<?php
 
-use App\Controllers\BaseController; 
+namespace App\Controllers\Adminview;
+
+use App\Controllers\BaseController;
 use App\Models\UsuarioModel;
-use CodeIgniter\I18n\Time; // Se asegura de usar la clase Time para manejo de fechas
+use App\Models\TipoMembresiaModel;
 
 class UsuariosController extends BaseController
 {
     protected $usuarioModel;
+    protected $membresiaModel;
 
     public function __construct()
     {
-        // Inicializa el modelo de usuarios
         $this->usuarioModel = new UsuarioModel();
+        $this->membresiaModel = new TipoMembresiaModel();
     }
 
     public function index()
     {
-        $data['usuarios'] = $this->usuarioModel->findAll();
+        $data['usuarios'] = $this->usuarioModel->getAllUsuariosWithMembresia();
         return view('admin/usuarios/index', $data);
     }
 
     public function crear()
     {
-        // 1. Procesa el formulario (POST)
-        if ($this->request->getMethod() === 'post') {
-            
-            // --- Lógica de cálculo de fechas y valores por defecto ---
-            $fechaInicio = $this->request->getPost('fecha_inicio_membresia') ?: Time::now()->toDateString();
-            $idMembresia = $this->request->getPost('id_membresia') ?? 1; 
-            
-            // Calculamos fecha fin (asumiendo 4 meses por defecto si está vacío)
-            $fechaFin = $this->request->getPost('fecha_fin_membresia');
-            if (empty($fechaFin)) {
-                $fechaFin = Time::parse($fechaInicio)->addMonths(4)->toDateString();
-            }
-
-            // Recolección de datos
-            $data = [
-                'usuario' => $this->request->getPost('usuario'),
-                'pass' => $this->request->getPost('pass'), 
-                'rol' => $this->request->getPost('rol'),
-                'nombre' => $this->request->getPost('nombre'),
-                'apellido' => $this->request->getPost('apellido'),
-                'correo' => $this->request->getPost('correo'),
-                'id_membresia' => $idMembresia, 
-                'fecha_nacimiento' => $this->request->getPost('fecha_nacimiento') ?: null,
-                'fecha_inicio_membresia' => $fechaInicio,
-                'fecha_fin_membresia' => $fechaFin,
-            ];
-
-            // 2. Intenta insertar los datos con manejo de excepciones (TRY-CATCH)
-            try {
-                if ($this->usuarioModel->insert($data)) {
-                    return redirect()->to('/admin/usuarios')->with('success', 'Usuario creado correctamente.');
-                } else {
-                    // Fallo de Validación (si el modelo devuelve false)
-                    $errors = $this->usuarioModel->errors();
-                    return redirect()->back()->withInput()->with('errors', $errors);
-                }
-            } catch (\CodeIgniter\Database\Exceptions\DatabaseException $e) {
-                // CAPTURA DE ERROR CRÍTICO DE BASE DE DATOS (FK, columna faltante, etc.)
-                $errors = ['db_error' => 'Error Crítico de Base de Datos: ' . $e->getMessage()];
-                return redirect()->back()->withInput()->with('errors', $errors);
-            } catch (\Exception $e) {
-                // CAPTURA DE CUALQUIER OTRA EXCEPCIÓN
-                $errors = ['general_error' => 'Error Inesperado: ' . $e->getMessage()];
-                return redirect()->back()->withInput()->with('errors', $errors);
-            }
-        }
-        
-        // 3. Muestra el formulario (GET)
-        return view('admin/usuarios/form');
+        $data['membresias'] = $this->membresiaModel->findAll();
+        return view('admin/usuarios/form', $data);
     }
 
-    // El resto de métodos (editar, eliminar) se mantienen igual
+    public function guardar()
+    {
+        // DEBUG TEMPORAL: Siempre imprime POST (no se redirige antes)
+        $post_data = $this->request->getPost();
+        echo "<h3 style='color: red; background: yellow; padding: 10px;'>DEBUG: POST Recibido</h3>";
+        echo "<pre style='background: #f0f0f0; padding: 10px; border: 1px solid #ccc;'>";
+        print_r($post_data);
+        echo "</pre>";
+        echo "<h3 style='color: red;'>DEBUG Pass: '" . $this->request->getPost('pass') . "' | Pass Confirm: '" . $this->request->getPost('pass_confirm') . "'</h3>";
+        // FIN DEBUG – NO BORRES AÚN
+
+        // Preparar datos básicos (sin validación estricta para test)
+        $data = [
+            'usuario' => $this->request->getPost('usuario') ?: 'test_default',
+            'correo' => $this->request->getPost('correo') ?: 'test@example.com',
+            'pass' => $this->request->getPost('pass') ?: 'defaultpass', // Default si vacío
+            'nombre' => $this->request->getPost('nombre') ?: 'Test',
+            'apellido' => $this->request->getPost('apellido') ?: 'User',
+            'rol' => $this->request->getPost('rol') ?: 'usuario',
+            'id_membresia' => $this->request->getPost('id_membresia') ?: 1,
+            'fecha_nacimiento' => $this->request->getPost('fecha_nacimiento') ?: null,
+            'fecha_inicio_membresia' => $this->request->getPost('fecha_inicio_membresia') ?: date('Y-m-d'),
+            'fecha_fin_membresia' => $this->request->getPost('fecha_fin_membresia') ?: date('Y-m-d', strtotime('+3 months')),
+        ];
+
+        // TEMPORAL: Hash MD5 manual (bypassa hooks y validación de pass_confirm)
+        if (!empty($data['pass'])) {
+            $data['pass'] = md5($data['pass']);
+            echo "<h3 style='color: green;'>DEBUG: Pass hasheado manual a: " . $data['pass'] . "</h3>";
+        }
+
+        // TEMPORAL: Salta validación completa – inserta directo
+        echo "<h3 style='color: blue;'>DEBUG: Intentando insert con datos:</h3>";
+        echo "<pre>";
+        print_r($data);
+        echo "</pre>";
+
+        if ($this->usuarioModel->insert($data)) {
+            echo "<h1 style='color: green;'>¡USUARIO CREADO EXITOSAMENTE! ID: " . $this->usuarioModel->insertID() . "</h1>";
+            echo "<p>Ve a phpMyAdmin y chequea la tabla usuarios (pass debe ser MD5).</p>";
+            echo "<a href='" . base_url('admin/usuarios') . "' style='background: green; color: white; padding: 10px;'>Ir a Lista de Usuarios</a>";
+            // Remueve el redirect para ver esto – después lo ponemos
+        } else {
+            echo "<h1 style='color: red;'>ERROR en INSERT: " . print_r($this->usuarioModel->errors(), true) . "</h1>";
+        }
+
+        // TEMPORAL: No redirige – muestra todo en pantalla para debug
+        // Después, volvemos a redirect()->to('/admin/usuarios')->with('success', 'OK');
+    }
 
     public function editar($id)
     {
-        $usuario = $this->usuarioModel->find($id);
+        $data['usuario'] = $this->usuarioModel->find($id);
+        if (empty($data['usuario'])) {
+            return redirect()->to(base_url('admin/usuarios'))->with('error', 'Usuario no encontrado');
+        }
+        $data['membresias'] = $this->membresiaModel->findAll();
+        return view('admin/usuarios/form', $data);
+    }
 
-        if (!$usuario) {
-            return redirect()->to('/admin/usuarios')->with('error', 'Usuario no encontrado.');
+    public function actualizar($id)
+    {
+        // TEMPORAL: Usa versión simple para update también
+        $data = [
+            'usuario' => $this->request->getPost('usuario'),
+            'correo' => $this->request->getPost('correo'),
+            'nombre' => $this->request->getPost('nombre'),
+            'apellido' => $this->request->getPost('apellido'),
+            'rol' => $this->request->getPost('rol'),
+            'id_membresia' => $this->request->getPost('id_membresia'),
+            'fecha_nacimiento' => $this->request->getPost('fecha_nacimiento'),
+            'fecha_inicio_membresia' => $this->request->getPost('fecha_inicio_membresia'),
+            'fecha_fin_membresia' => $this->request->getPost('fecha_fin_membresia'),
+        ];
+
+        $pass = $this->request->getPost('pass');
+        if (!empty($pass)) {
+            $data['pass'] = md5($pass); // Hash manual
         }
 
-        if ($this->request->getMethod() === 'post') {
-            
-            $data = [
-                'id' => $id, 
-                'usuario' => $this->request->getPost('usuario'),
-                'rol' => $this->request->getPost('rol'),
-                'nombre' => $this->request->getPost('nombre'),
-                'apellido' => $this->request->getPost('apellido'),
-                'correo' => $this->request->getPost('correo'),
-                'id_membresia' => $this->request->getPost('id_membresia') ?? 1,
-                'fecha_nacimiento' => $this->request->getPost('fecha_nacimiento') ?: null,
-                'fecha_inicio_membresia' => $this->request->getPost('fecha_inicio_membresia'),
-                'fecha_fin_membresia' => $this->request->getPost('fecha_fin_membresia'),
-            ];
-            
-            $newPass = $this->request->getPost('pass');
-            if (!empty($newPass)) {
-                $data['pass'] = $newPass;
-            }
-            
-            if ($this->usuarioModel->save($data)) {
-                return redirect()->to('/admin/usuarios')->with('success', 'Usuario actualizado correctamente.');
-            } else {
-                return redirect()->back()->withInput()->with('errors', $this->usuarioModel->errors());
-            }
+        if ($this->usuarioModel->update($id, $data)) {
+            return redirect()->to(base_url('admin/usuarios'))->with('success', 'Usuario actualizado correctamente');
+        } else {
+            return redirect()->back()->withInput()->with('errors', $this->usuarioModel->errors());
         }
-
-        return view('admin/usuarios/form', ['usuario' => $usuario]);
     }
 
     public function eliminar($id)
     {
+        $usuario = $this->usuarioModel->find($id);
+        if (empty($usuario) || $usuario['usuario'] === 'dtoledo') {
+            return redirect()->to(base_url('admin/usuarios'))->with('error', 'No se puede eliminar este usuario.');
+        }
         $this->usuarioModel->delete($id);
-        return redirect()->to('/admin/usuarios')->with('success', 'Usuario eliminado correctamente.');
+        return redirect()->to(base_url('admin/usuarios'))->with('success', 'Usuario eliminado correctamente');
     }
 }

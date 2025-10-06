@@ -48,33 +48,31 @@ $routes->group('admin', ['namespace' => 'App\Controllers\Adminview', 'filter' =>
     $routes->post('discos/actualizar/(:num)', 'DiscoController::actualizar/$1');
     $routes->get('discos/eliminar/(:num)', 'DiscoController::eliminar/$1');
 
-    // 4. RUTAS DE USUARIOS (Con corrección GET/POST explícita)
+    // 4. RUTAS DE USUARIOS (CORREGIDO: Rutas consistentes con métodos del controlador)
     $routes->get('usuarios', 'UsuariosController::index');
 
-    // Crear Usuario
+    // Crear Usuario:
     $routes->get('usuarios/crear', 'UsuariosController::crear');
-    $routes->post('usuarios/crear', 'UsuariosController::crear');
+    $routes->post('usuarios/guardar', 'UsuariosController::guardar'); // Cambiado de 'create' a 'guardar'
 
-    // Editar Usuario
+    // Editar Usuario:
     $routes->get('usuarios/editar/(:num)', 'UsuariosController::editar/$1');
-    $routes->post('usuarios/editar/(:num)', 'UsuariosController::editar/$1');
+    $routes->post('usuarios/actualizar/(:num)', 'UsuariosController::actualizar/$1');
 
-    $routes->get('usuarios/eliminar/(:num)', 'UsuariosController::eliminar/$1');
+    // Eliminar Usuario (cambiado a POST para seguridad):
+    $routes->post('usuarios/eliminar/(:num)', 'UsuariosController::eliminar/$1');
 
-    // 5. CRUD MEMBRESÍAS (¡NUEVO! Llama a MembresiaController)
-    // El listado principal (index)
+    // 5. CRUD MEMBRESÍAS (Llama a MembresiaController)
     $routes->get('membresias', 'MembresiaController::index'); 
     
-    // CRUD
     $routes->match(['get', 'post'], 'membresias/crear', 'MembresiaController::crearMembresia');
     $routes->match(['get', 'post'], 'membresias/editar/(:num)', 'MembresiaController::editarMembresia/$1');
     $routes->get('membresias/eliminar/(:num)', 'MembresiaController::eliminarMembresia/$1');
 
-    // Detalle de usuarios por membresía
     $routes->get('membresias/usuarios/(:num)', 'MembresiaController::usuarios/$1');
 
 
-    // 6. RUTAS QUE SE MANTIENEN EN Admin.php (Se movió el 5 al 6 y se actualizó la numeración)
+    // 6. RUTAS QUE SE MANTIENEN EN Admin.php
     // Tipos de pago
     $routes->get('pagos', 'Admin::pagos');
     $routes->match(['get', 'post'], 'pagos/crear', 'Admin::crearPago');

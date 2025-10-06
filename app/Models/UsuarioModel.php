@@ -1,143 +1,102 @@
-<?php namespace App\Models;
+<?php
+
+namespace App\Models;
 
 use CodeIgniter\Model;
 
-/**
- * Modelo para la tabla 'usuarios'.
- */
 class UsuarioModel extends Model
 {
-    // Configuración principal de la tabla
-    protected $table          = 'usuarios';
-    protected $primaryKey     = 'id';
-    protected $returnType     = 'array';
-    protected $useSoftDeletes = false; 
-    protected $useTimestamps  = false; 
-
-    // Campos permitidos para inserción y actualización
+    protected $table = 'usuarios';
+    protected $primaryKey = 'id';
+    protected $useTimestamps = true;
+    protected $createdField = 'created_at';
+    protected $updatedField = 'updated_at';
     protected $allowedFields = [
-        'usuario',
-        'pass',
-        'rol',
-        'id_membresia',
-        'nombre',
-        'apellido',
-        'fecha_nacimiento', 
-        'correo',
-        'fecha_inicio_membresia',
-        'fecha_fin_membresia',
+        'usuario', 'correo', 'pass', 'nombre', 'apellido', 'rol',  // Removí pass_confirm
+        'id_membresia', 'fecha_nacimiento', 'fecha_inicio_membresia',
+        'fecha_fin_membresia', 'created_at', 'updated_at'
     ];
 
-    // Eventos del modelo (Hooks) para el hash de contraseña
-    protected $beforeInsert = ['hashPassword'];
-    protected $beforeUpdate = ['hashPassword'];
+    // Reglas específicas para INSERT (sin {id} para is_unique)
+    protected $insertValidationRules = [
+        'usuario' => 'required|alpha_numeric_space|min_length[3]|max_length[30]|is_unique[usuarios.usuario]',
+        'pass' => 'required|min_length[6]',
+        'pass_confirm' => 'required|matches[pass]',
+        'correo' => 'required|valid_email|is_unique[usuarios.correo]',
+        'nombre' => 'required|min_length[3]|max_length[50]',
+        'apellido' => 'required|min_length[3]|max_length[50]',
+        'rol' => 'required|in_list[admin,usuario]',
+        'id_membresia' => 'required|integer',
+        'fecha_inicio_membresia' => 'required|valid_date[Y-m-d]',
+        'fecha_fin_membresia' => 'required|valid_date[Y-m-d]',
+        'fecha_nacimiento' => 'permit_empty|valid_date[Y-m-d]'
+    ];
 
-    /**
-     * Aplica la función MD5 a la contraseña antes de guardarla.
-     */
-    protected function hashPassword(array $data)
-    {
-        // Importante: Solo hashea si la contraseña se ha proporcionado y no está vacía
-        if (isset($data['data']['pass']) && !empty($data['data']['pass'])) {
-            // Utilizamos MD5 (32 caracteres)
-            $data['data']['pass'] = md5($data['data']['pass']);
-        }
-        return $data;
-    }
-
-    // Reglas de validación
-    protected $validationRules = [
-        // Validación de unicidad. La sintaxis 'is_unique[tabla.campo,id,{id}]'
-        // permite la edición sin error al excluir el ID actual.
-        'usuario'       => 'required|min_length[3]|max_length[50]|is_unique[usuarios.usuario,id,{id}]',
-        'correo'        => 'required|valid_email|max_length[150]|is_unique[usuarios.correo,id,{id}]',
-        
-        // CORRECCIÓN CLAVE: Reglas condicionales para 'pass'.
-        // Asegura que sea 'required' SOLO al insertar, y 'permit_empty' en la actualización.
-        'pass' => [ 
-            'label' => 'Contraseña',
-            'rules' => 'min_length[5]',
-            'on'    => [
-                'insert' => 'required|min_length[5]', 
-                'update' => 'permit_empty|min_length[5]' 
-            ],
-        ],
-
-        // Campos No Nulo restantes
-        'rol'                   => 'required|in_list[admin,usuario]',
-        // Validamos que el ID exista en la tabla tipos_membresia
-        'id_membresia'          => 'required|integer|is_not_unique[tipos_membresia.id]',
-        'nombre'                => 'required|max_length[150]',
-        'apellido'              => 'required|max_length[150]',
-        
-        // Validación de fechas (NOT NULL en la BD)
-        'fecha_nacimiento'      => 'permit_empty|valid_date',
-        'fecha_inicio_membresia' => 'required|valid_date',
-        'fecha_fin_membresia'    => 'required|valid_date', 
+    // Reglas específicas para UPDATE (con {id} para is_unique)
+    protected $updateValidationRules = [
+        'usuario' => 'required|alpha_numeric_space|min_length[3]|max_length[30]|is_unique[usuarios.usuario,id,{id}]',
+        'pass' => 'permit_empty|min_length[6]',
+        'pass_confirm' => 'permit_empty|matches[pass]',
+        'correo' => 'required|valid_email|is_unique[usuarios.correo,id,{id}]',
+        'nombre' => 'required|min_length[3]|max_length[50]',
+        'apellido' => 'required|min_length[3]|max_length[50]',
+        'rol' => 'required|in_list[admin,usuario]',
+        'id_membresia' => 'required|integer',
+        'fecha_nacimiento' => 'permit_empty|valid_date[Y-m-d]',
+        'fecha_inicio_membresia' => 'required|valid_date[Y-m-d]',
+        'fecha_fin_membresia' => 'required|valid_date[Y-m-d]'
     ];
 
     protected $validationMessages = [
         'usuario' => [
-            'required'  => 'El campo **Usuario** es obligatorio.',
-            'is_unique' => 'El nombre de usuario ya está registrado.',
+            'required' => 'El usuario es requerido.',
+            'is_unique' => 'El usuario ya existe.',
+        ],
+        'pass' => [
+            'required' => 'La contraseña es requerida.',
+            'min_length' => 'La contraseña debe tener al menos 6 caracteres.',
+        ],
+        'pass_confirm' => [
+            'matches' => 'Las contraseñas no coinciden.',
         ],
         'correo' => [
-            'required'      => 'El campo **Correo Electrónico** es obligatorio.',
-            'valid_email'   => 'Por favor, ingresa un correo electrónico válido.',
-            'is_unique'     => 'El correo electrónico ya está registrado.',
-        ],
-        'pass' => [ 
-            'required'   => 'La **Contraseña** es obligatoria.',
-            'min_length' => 'La contraseña debe tener al menos 5 caracteres.',
-        ],
-        'rol' => [
-            'required' => 'El campo **Rol** es obligatorio.',
-            'in_list'  => 'El valor del Rol no es válido (debe ser admin o usuario).',
-        ],
-        'id_membresia' => [
-            'required'      => 'El campo **Membresía ID** es obligatorio.',
-            'is_not_unique' => 'El ID de la membresía seleccionada no existe.',
+            'required' => 'El correo es requerido.',
+            'valid_email' => 'Formato de correo inválido.',
+            'is_unique' => 'El correo ya está registrado.',
         ],
         'nombre' => [
-            'required' => 'El campo **Nombre** es obligatorio.',
+            'required' => 'El nombre es requerido.',
         ],
-        'apellido' => [
-            'required' => 'El campo **Apellido** es obligatorio.',
-        ],
-        'fecha_inicio_membresia' => [
-            'required'   => 'La **Fecha de Inicio de Membresía** es obligatoria.',
-            'valid_date' => 'Formato de fecha de inicio inválido.',
-        ],
-        'fecha_fin_membresia' => [
-            'required'   => 'La **Fecha Fin Membresía** es obligatoria.',
-            'valid_date' => 'Formato de fecha fin inválido.',
+        'rol' => [
+            'required' => 'El rol es requerido.',
         ],
     ];
+    protected $skipValidation = false;
 
-    // -------------------------------------------------------------------------
-    // |                     MÉTODO REQUERIDO PARA MEMBRESÍAS                  |
-    // -------------------------------------------------------------------------
-
-    /**
-     * Obtiene todos los usuarios que tienen una membresía específica,
-     * incluyendo el nombre de la membresía.
-     * @param int $idMembresia ID de la membresía a filtrar.
-     * @return array
-     */
-    public function getUsuariosByMembresia(int $idMembresia): array
+    protected function beforeInsert(array $data)
     {
-        // 1. SELECT: Seleccionamos los campos necesarios y renombramos (AS) para evitar conflictos.
-        return $this->select('usuarios.id AS id_usuario, usuarios.usuario, usuarios.correo, 
-                             tipos_membresia.id AS membresia_id, tipos_membresia.nombre AS membresia_nombre,
-                             usuarios.fecha_inicio_membresia, usuarios.fecha_fin_membresia')
-                    
-                    // 2. JOIN: Conectamos la tabla 'usuarios' con 'tipos_membresia'.
-                    ->join('tipos_membresia', 'tipos_membresia.id = usuarios.id_membresia')
-                    
-                    // 3. WHERE: Filtramos por el ID de la membresía.
-                    ->where('usuarios.id_membresia', $idMembresia)
-                    
-                    // 4. FIND: Ejecutamos la consulta y devolvemos los resultados.
+        if (!empty($data['pass'])) {
+            $data['pass'] = md5($data['pass']);
+            log_message('debug', 'beforeInsert: Pass hasheado para nuevo usuario a ' . $data['pass']);
+        }
+        return $data;
+    }
+
+    protected function beforeUpdate(array $data)
+    {
+        if (isset($data['pass']) && $data['pass'] !== '') {
+            $data['pass'] = md5($data['pass']);
+            log_message('debug', 'beforeUpdate: Pass hasheado para update a ' . $data['pass']);
+        } else {
+            unset($data['pass']);
+        }
+        return $data;
+    }
+
+    public function getAllUsuariosWithMembresia()
+    {
+        return $this->select('usuarios.id, usuarios.usuario, usuarios.nombre, usuarios.apellido, usuarios.correo, usuarios.rol, tipos_membresia.nombre AS nombre_membresia')
+                    ->join('tipos_membresia', 'tipos_membresia.id = usuarios.id_membresia', 'left')
                     ->findAll();
     }
 }

@@ -60,7 +60,7 @@ class Database extends Config
         'database'     => ':memory:',
         'DBDriver'     => 'SQLite3',
         'DBPrefix'     => 'db_', // Needed to ensure we're working correctly with prefixes live. DO NOT REMOVE FOR CI DEVS
-        'pConnect'     => false,
+        'pConnect'     => true,
         'DBDebug'      => true,
         'charset'      => 'utf8',
         'DBCollat'     => '',

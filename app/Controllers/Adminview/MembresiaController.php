@@ -1,4 +1,5 @@
-<?php namespace App\Controllers\Adminview;
+<?php 
+namespace App\Controllers\Adminview;
 
 use App\Controllers\BaseController;
 use App\Models\TipoMembresiaModel;
@@ -44,13 +45,25 @@ class MembresiaController extends BaseController
         // Combinar datos
         foreach ($membresias_db as $membresia) {
             $id = $membresia['id'];
-            $membresias_completas[] = [
-                'id'         => $id,
-                'nombre'     => $caracteristicas[$id]['icono'] . ' Membresía ' . $membresia['nombre'],
-                'precio'     => $membresia['precio'],
-                'duracion'   => $membresia['duracion_meses'],
-                'caracteristicas' => $caracteristicas[$id]['desc']
-            ];
+            // Se añade el chequeo isset para evitar errores si un ID de membresía de la DB no está en $caracteristicas
+            if (isset($caracteristicas[$id])) {
+                $membresias_completas[] = [
+                    'id'          => $id,
+                    'nombre'      => $caracteristicas[$id]['icono'] . ' Membresía ' . $membresia['nombre'],
+                    'precio'      => $membresia['precio'],
+                    'duracion'    => $membresia['duracion_meses'],
+                    'caracteristicas' => $caracteristicas[$id]['desc']
+                ];
+            } else {
+                // Alternativa por si falta la configuración de características
+                 $membresias_completas[] = [
+                    'id'          => $id,
+                    'nombre'      => 'Membresía ' . $membresia['nombre'],
+                    'precio'      => $membresia['precio'],
+                    'duracion'    => $membresia['duracion_meses'],
+                    'caracteristicas' => 'Sin descripción.'
+                ];
+            }
         }
 
         $data = [
@@ -84,6 +97,10 @@ class MembresiaController extends BaseController
             'titulo'    => 'Usuarios de la Membresía: ' . $membresia['nombre']
         ];
 
-        return view('admin/membresias/usuarios', $data);
+        // CORRECCIÓN FINAL: Se remueven los asteriscos innecesarios.
+        // La vista es 'app/Views/admin/membresias/detalle_usuarios.php'
+        return view('admin/membresias/detalle_usuarios', $data); // <-- Línea 101 corregida
     }
+    
+    // NOTA: Debes incluir aquí los métodos crearMembresia, editarMembresia y eliminarMembresia si existen.
 }

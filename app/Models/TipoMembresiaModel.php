@@ -21,5 +21,13 @@ class TipoMembresiaModel extends Model
         'duracion_meses',
     ];
 
-    // Puedes agregar aquí métodos específicos para membresías si los necesitas
+    /**
+     * Obtiene todas las membresías, incluyendo su duración.
+     * Esto es necesario para el formulario de creación/edición de usuarios.
+     * @return array
+     */
+    public function getAllMembresias(): array
+    {
+        return $this->select('id, nombre, duracion_meses')->findAll();
+    }
 }
