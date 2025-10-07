@@ -20,16 +20,13 @@ $routes->setAutoRoute(false);
 // --------------------------------------------------------------------
 // RUTAS PÚBLICAS (ACCESIBLES SIN LOGIN)
 // --------------------------------------------------------------------
-// Login y Logout en la raíz para evitar el 404
-// Rutas públicas
 $routes->get('/', 'Login::index'); 
 $routes->post('autenticar', 'Login::autenticar'); 
-$routes->get('logout', 'Login::logout'); // <--- La ruta correcta es /logout
+$routes->get('logout', 'Login::logout');
 
 // --------------------------------------------------------------------------
 // --- Rutas del Panel de Usuario (Tienda y Carrito) ---
 // --------------------------------------------------------------------------
-// El 'namespace' apunta a App\Controllers\Userview\
 $routes->group('usuario', ['filter' => 'auth', 'namespace' => 'App\Controllers\Userview'], function($routes) {
     
     // Vistas principales (UsuariosController)
@@ -38,7 +35,7 @@ $routes->group('usuario', ['filter' => 'auth', 'namespace' => 'App\Controllers\U
     
     // Rutas para el Carrito (CarritoController - Lógica AJAX)
     $routes->post('carrito/agregar', 'CarritoController::agregar');
-    $routes->post('carrito/actualizar', 'CarritoController::actualizar'); // Aseguramos que esta ruta exista
+    $routes->post('carrito/actualizar', 'CarritoController::actualizar');
     $routes->get('carrito/obtener', 'CarritoController::obtener');
     $routes->get('carrito/vaciar', 'CarritoController::vaciar');
     $routes->post('carrito/checkout', 'CarritoController::checkout');
@@ -63,7 +60,7 @@ $routes->group('admin', ['namespace' => 'App\Controllers\Adminview', 'filter' =>
     $routes->post('categorias/guardar', 'CategoriaController::guardar');
     $routes->get('categorias/editar/(:num)', 'CategoriaController::editar/$1');
     $routes->post('categorias/actualizar/(:num)', 'CategoriaController::actualizar/$1');
-    $routes->get('categorias/eliminar/(:num)', 'CategoriaController::eliminar/$1');
+    $routes->post('categorias/eliminar/(:num)', 'CategoriaController::eliminar/$1'); // <--- CAMBIO DE GET A POST
 
     // 3. CRUD DISCOS (Llaman a DiscoController)
     $routes->get('discos', 'DiscoController::index');
@@ -71,7 +68,7 @@ $routes->group('admin', ['namespace' => 'App\Controllers\Adminview', 'filter' =>
     $routes->post('discos/guardar', 'DiscoController::guardar');
     $routes->get('discos/editar/(:num)', 'DiscoController::editar/$1');
     $routes->post('discos/actualizar/(:num)', 'DiscoController::actualizar/$1');
-    $routes->get('discos/eliminar/(:num)', 'DiscoController::eliminar/$1');
+    $routes->post('discos/eliminar/(:num)', 'DiscoController::eliminar/$1'); // <--- CAMBIO DE GET A POST
 
     // 4. RUTAS DE USUARIOS 
     $routes->get('usuarios', 'UsuariosController::index');
@@ -102,6 +99,10 @@ $routes->group('admin', ['namespace' => 'App\Controllers\Adminview', 'filter' =>
     $routes->get('pedidos/detalle/(:num)', 'PedidoController::verDetalle/$1');
     $routes->get('recibos', 'Admin::recibos');
     $routes->get('recibos/detalle/(:num)', 'Admin::detalleRecibo/$1');
+
+    // 8. RUTAS PARA REPORTES (Llaman a Reportes) <--- NUEVO
+    $routes->get('reportes', 'Reportes::index');
+    $routes->get('reporte/(:segment)', 'Reportes::generarPdf/$1');
 });
 
 /*
