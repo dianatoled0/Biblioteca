@@ -17,10 +17,14 @@ $routes->setTranslateURIDashes(false);
 $routes->set404Override();
 $routes->setAutoRoute(false);
 
+// --------------------------------------------------------------------
+// RUTAS PÚBLICAS (ACCESIBLES SIN LOGIN)
+// --------------------------------------------------------------------
+// Login y Logout en la raíz para evitar el 404
 // Rutas públicas
-$routes->get('/', 'Login::index');
-$routes->post('login/autenticar', 'Login::autenticar');
-$routes->get('login/logout', 'Login::logout');
+$routes->get('/', 'Login::index'); 
+$routes->post('autenticar', 'Login::autenticar'); 
+$routes->get('logout', 'Login::logout'); // <--- La ruta correcta es /logout
 
 // --------------------------------------------------------------------------
 // --- Rutas del Panel de Usuario (Tienda y Carrito) ---
@@ -34,6 +38,7 @@ $routes->group('usuario', ['filter' => 'auth', 'namespace' => 'App\Controllers\U
     
     // Rutas para el Carrito (CarritoController - Lógica AJAX)
     $routes->post('carrito/agregar', 'CarritoController::agregar');
+    $routes->post('carrito/actualizar', 'CarritoController::actualizar'); // Aseguramos que esta ruta exista
     $routes->get('carrito/obtener', 'CarritoController::obtener');
     $routes->get('carrito/vaciar', 'CarritoController::vaciar');
     $routes->post('carrito/checkout', 'CarritoController::checkout');
@@ -48,6 +53,7 @@ $routes->group('usuario', ['filter' => 'auth', 'namespace' => 'App\Controllers\U
 // --- Rutas Administrador (con filtro admin) ---
 // --------------------------------------------------------------------------
 $routes->group('admin', ['namespace' => 'App\Controllers\Adminview', 'filter' => 'admin'], function ($routes) {
+    
     // 1. DASHBOARD
     $routes->get('/', 'Admin::index');
 

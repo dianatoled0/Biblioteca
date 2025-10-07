@@ -9,7 +9,7 @@
     <link rel="manifest" href="/site.webmanifest">
     <title>Melofy</title>
     <style>
-        @import url('[https://fonts.googleapis.com/css2?family=Orbitron:wght@500&family=Poppins&display=swap](https://fonts.googleapis.com/css2?family=Orbitron:wght@500&family=Poppins&display=swap)');
+        @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@500&family=Poppins&display=swap');
         body {
             margin: 0;
             font-family: 'Poppins', sans-serif;
@@ -98,26 +98,23 @@
     <div class="container">
         <h1 class="logo">Melofy</h1>
         <h2 class="slogan">Tu ritmo, tu mundo </h2>
-        <!-- Mensaje de error, si existe -->
         <?php if (session()->getFlashdata('error')): ?>
             <p style="color: red;"><?= session()->getFlashdata('error') ?></p>
         <?php endif; ?>
-        <!-- Mensaje de éxito, si existe -->
         <?php if (session()->getFlashdata('success')): ?>
             <p style="color: green;"><?= session()->getFlashdata('success') ?></p>
         <?php endif; ?>
         
-        <!-- Se ha agregado el action y el method al formulario -->
-        <form class="login-form" action="<?= base_url('login/autenticar') ?>" method="post">
-    <label for="usuario">Usuario</label>
-    <input type="text" id="usuario" name="usuario" placeholder="Ingresa tu usuario" required>
+        <form class="login-form" action="<?= base_url('autenticar') ?>" method="post">
+            <label for="usuario">Usuario</label>
+            <input type="text" id="usuario" name="usuario" placeholder="Ingresa tu usuario" required>
 
-    <label for="pass">Contraseña</label>
-    <input type="password" id="pass" name="pass" placeholder="Ingresa tu contraseña" required>
+            <label for="pass">Contraseña</label>
+            <input type="password" id="pass" name="pass" placeholder="Ingresa tu contraseña" required>
 
-    <button type="submit">Iniciar Sesión</button>
+            <button type="submit">Iniciar Sesión</button>
 
-</form>
+        </form>
 
     </div>
 </body>

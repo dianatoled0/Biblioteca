@@ -1,5 +1,5 @@
 <style>
-/* Estilos para el Modal (puede ir en el <style> de layout_user.php) */
+/* Estilos para el Modal */
 .modal-overlay {
     position: fixed;
     top: 0;
@@ -39,20 +39,14 @@
     border-bottom: 1px solid #2C2A3B;
     padding-bottom: 15px;
 }
-.carrito-item {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
+/* Estilos para la lista y la cantidad */
+.carrito-item-grid {
+    display: grid;
+    grid-template-columns: 3fr 1fr 1fr 0.5fr; /* Título | Precio | Cantidad | Eliminar */
+    gap: 10px;
     padding: 10px 0;
     border-bottom: 1px solid #2C2A3B;
-}
-.carrito-item-info {
-    flex-grow: 1;
-}
-.carrito-item-info strong {
-    font-weight: 500;
-    font-size: 16px;
-    color: #6D28D9;
+    align-items: center;
 }
 .carrito-total {
     margin-top: 20px;
@@ -77,29 +71,52 @@
     transition: background-color 0.2s;
 }
 .btn-secondary:hover { background-color: #D97706; }
+
+/* Estilo para Notificación (Punto 4) */
+.cart-notification {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    z-index: 1050;
+    padding: 10px 20px;
+    background-color: #4CAF50; /* Verde éxito */
+    color: white;
+    border-radius: 5px;
+    display: none; 
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+}
 </style>
 
 <div id="floating-cart-icon" style="position: fixed; bottom: 30px; right: 30px; background-color: #6D28D9; color: white; width: 50px; height: 50px; border-radius: 50%; display: flex; justify-content: center; align-items: center; cursor: pointer; z-index: 999;">
     <svg class="icon" viewBox="0 0 24 24" style="stroke: white; width: 24px; height: 24px;"><path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"></path><line x1="3" y1="6" x2="21" y2="6"></line><path d="M16 10a4 4 0 0 1-8 0"></path></svg>
-    <span id="cart-item-count" style="position: absolute; top: -5px; right: -5px; background-color: red; color: white; font-size: 12px; border-radius: 50%; padding: 2px 6px; font-weight: bold;">0</span>
+    <span class="cart-count" style="position: absolute; top: -5px; right: -5px; background-color: red; color: white; font-size: 12px; border-radius: 50%; padding: 2px 6px; font-weight: bold;">0</span>
 </div>
+
+<div id="cartNotification" class="cart-notification"></div>
 
 <div id="carritoModal" class="modal-overlay">
     <div class="carrito-modal">
         <span class="modal-close" id="closeModalBtn">&times;</span>
         <h3 class="modal-title">Tu Carrito de Compras</h3>
 
-        <div id="carritoContent">
-            <p>El carrito está vacío.</p>
+        <div id="carrito-content-header" class="carrito-item-grid" style="font-weight: bold; border-bottom: 2px solid #6D28D9; display: none;">
+            <span>Producto</span>
+            <span style="text-align: right;">Precio (Q)</span>
+            <span style="text-align: center;">Cantidad</span>
+            <span></span>
+        </div>
+        
+        <div id="carrito-items-list">
+            <p id="carrito-vacio-msg">El carrito está vacío.</p>
         </div>
 
         <div id="carritoTotal" class="carrito-total">
-            Total: Q 0.00
+            Total: Q <span id="carrito-total-monto">0.00</span>
         </div>
 
         <div class="modal-actions">
             <button id="vaciarCarritoBtn" class="btn-secondary">Vaciar Carrito</button>
-            <button id="checkoutBtn" class="btn-primary">Finalizar Compra</button>
+            <button id="finalizarCompraBtn" class="btn-primary" disabled>Finalizar Compra</button>
         </div>
     </div>
 </div>

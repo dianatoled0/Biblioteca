@@ -398,7 +398,7 @@
             <div class="sidebar-header">
                 <svg width="32" height="32" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                     <path d="M12 3c-3.866 0-7 3.134-7 7v2h2v-2a5 5 0 0 1 10 0v2h2v-2c0-3.866-3.134-7-7-7z"
-                                 fill="#8B5CF6"/>
+                             fill="#8B5CF6"/>
                     <rect x="3" y="10" width="4" height="7" rx="1" ry="1" fill="#8B5CF6"/>
                     <rect x="17" y="10" width="4" height="7" rx="1" ry="1" fill="#8B5CF6"/>
                     <rect x="11" y="19" width="2" height="2" rx="0.5" ry="0.5" fill="#8B5CF6"/>
@@ -422,7 +422,7 @@
                 </ul>
             </nav>
             <div class="sidebar-footer">
-                <a href="<?= base_url('login/logout') ?>"> 
+                <a href="<?= base_url('logout') ?>"> 
                     <svg class="icon" viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg>
                     <span>Cerrar sesión</span>
                 </a>

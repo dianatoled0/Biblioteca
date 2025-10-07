@@ -1,4 +1,6 @@
-<?php namespace App\Controllers\Adminview;
+<?php 
+
+namespace App\Controllers\Adminview;
 
 use App\Controllers\BaseController;
 use App\Models\PagoModel;
@@ -18,13 +20,6 @@ class Admin extends BaseController
         return view('admin/index'); // dashboard del admin
     }
 
-    /* =========================
-     * CRUD MEMBRESÍAS
-     * ESTAS FUNCIONES FUERON MOVIDAS A MembresiaController.php
-     * ========================= */
-    // Las funciones membresias(), crearMembresia(), editarMembresia(), y eliminarMembresia()
-    // deben ser eliminadas de este archivo para evitar el error y mantener la organización.
-    
     /* =========================
      * CRUD TIPOS DE PAGO
      * ========================= */
