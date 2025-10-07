@@ -81,23 +81,9 @@ class Reportes extends BaseController
         // Datos de Trazabilidad para el PDF
         $datos['fecha_emision'] = date('d/m/Y H:i:s');
         
-        // 🚨 CORRECCIÓN FINAL PARA FORZAR EL NOMBRE COMPLETO: 
-        $nombre = $session->get('nombre') ?? '';
-        $apellido = $session->get('apellido') ?? '';
-        $usuario = $session->get('usuario') ?? 'Administrador Desconocido'; 
-        
-        $nombreCompleto = trim($nombre . ' ' . $apellido);
-        
-        // Si la concatenación tiene éxito, la usamos. Si no, si el usuario es 'dtoledo', forzamos el nombre.
-        if (!empty($nombreCompleto)) {
-            $datos['usuario_generador'] = $nombreCompleto;
-        } elseif ($usuario === 'dtoledo') {
-            // Solución temporal basada en tu usuario de prueba.
-            $datos['usuario_generador'] = 'Diana Toledo';
-        } else {
-            // Usar el usuario de login si la concatenación falló y no es 'dtoledo'.
-            $datos['usuario_generador'] = $usuario;
-        }
+        // 🚨 CAMBIO CLAVE: Utilizamos la clave de sesión 'nombre_completo'
+        // que es definida en el controlador de Login.
+        $datos['usuario_generador'] = $session->get('nombre_completo') ?? 'Administrador Desconocido';
         
         $datos['nombre_empresa'] = 'Melofy';
         
