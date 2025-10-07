@@ -5,7 +5,6 @@ namespace App\Controllers\Adminview;
 use App\Controllers\BaseController;
 use Dompdf\Dompdf;
 use App\Models\UsuarioModel;
-use App\Models\TipoMembresiaModel;
 use App\Models\DiscoModel;
 use App\Models\PedidoModel;
 use App\Models\CategoriaModel; // Necesitas asegurar que este modelo existe
@@ -22,7 +21,7 @@ class Reportes extends BaseController
 
     /**
      * Genera y muestra el reporte en PDF.
-     * @param string $tipo El tipo de reporte a generar (usuarios, membresias, discos, pedidos, categorias).
+     * @param string $tipo El tipo de reporte a generar (usuarios, discos, pedidos, categorias).
      */
     public function generarPdf($tipo)
     {
@@ -40,14 +39,6 @@ class Reportes extends BaseController
                     $titulo = "Reporte de Usuarios Registrados";
                     $vistaReporte = 'admin/reportes/pdf/usuarios_pdf';
                     $nombreArchivo = "Reporte_Usuarios_" . date('Ymd') . ".pdf";
-                    break;
-
-                case 'membresias':
-                    $membresiaModel = new TipoMembresiaModel();
-                    $datos['membresias'] = $membresiaModel->findAll(); 
-                    $titulo = "Reporte de Tipos de Membresía";
-                    $vistaReporte = 'admin/reportes/pdf/membresias_pdf';
-                    $nombreArchivo = "Reporte_Membresias_" . date('Ymd') . ".pdf";
                     break;
                 
                 case 'discos':
@@ -68,10 +59,11 @@ class Reportes extends BaseController
 
                 case 'categorias':
                     $categoriaModel = new CategoriaModel(); 
-                    $datos['registros'] = $categoriaModel->findAll();
-                    $titulo = "Reporte de Categorías de Discos";
+                    // 🚨 CAMBIO AQUÍ: Llamamos al nuevo método con el conteo
+                    $datos['registros'] = $categoriaModel->getCategoriasWithDiscsCount();
+                    $titulo = "Reporte de Categorías y Conteo de Discos";
                     $vistaReporte = 'admin/reportes/pdf/categorias_pdf';
-                    $nombreArchivo = "Reporte_Categorias_" . date('Ymd') . ".pdf";
+                    $nombreArchivo = "Reporte_Categorias_Conteo_" . date('Ymd') . ".pdf";
                     break;
                 
                 default:

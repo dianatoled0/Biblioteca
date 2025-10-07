@@ -16,11 +16,6 @@
             Reporte de Usuarios
         </a>
 
-        <a href="<?= base_url('admin/reporte/membresias') ?>" target="_blank" class="btn-primary" style="background-color: #F59E0B; text-align: center;">
-            <svg style="margin-right: 8px;" class="icon" width="20" height="20" viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"></path><circle cx="9" cy="7" r="4" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"></path><path d="M16 3.13a4 4 0 0 1 0 7.75" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"></path></svg>
-            Reporte de Membresías
-        </a>
-
         <a href="<?= base_url('admin/reporte/discos') ?>" target="_blank" class="btn-primary" style="background-color: #10B981; text-align: center;">
             <svg style="margin-right: 8px;" class="icon" width="20" height="20" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"></circle><circle cx="12" cy="12" r="3" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"></circle><path d="M12 2a10 10 0 0 1 7.07 2.93" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"></path><path d="M3.05 12a10 10 0 0 1 7.07-7.07" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"></path><path d="M12 22a10 10 0 0 0 7.07-2.93" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"></path><path d="M20.95 12a10 10 0 0 0-7.07 7.07" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"></path></svg>
             Reporte de Discos (Stock)
