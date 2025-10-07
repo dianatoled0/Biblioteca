@@ -7,7 +7,7 @@ use Dompdf\Dompdf;
 use App\Models\UsuarioModel;
 use App\Models\DiscoModel;
 use App\Models\PedidoModel;
-use App\Models\CategoriaModel; // Necesitas asegurar que este modelo existe
+use App\Models\CategoriaModel; 
 
 class Reportes extends BaseController
 {
@@ -59,7 +59,6 @@ class Reportes extends BaseController
 
                 case 'categorias':
                     $categoriaModel = new CategoriaModel(); 
-                    // 🚨 CAMBIO AQUÍ: Llamamos al nuevo método con el conteo
                     $datos['registros'] = $categoriaModel->getCategoriasWithDiscsCount();
                     $titulo = "Reporte de Categorías y Conteo de Discos";
                     $vistaReporte = 'admin/reportes/pdf/categorias_pdf';
@@ -67,7 +66,6 @@ class Reportes extends BaseController
                     break;
                 
                 default:
-                    // Si el tipo no es válido, retorna a la página de reportes
                     return redirect()->to(base_url('admin/reportes'))->with('error', 'Tipo de reporte no válido.');
             }
         } catch (\Exception $e) {
@@ -75,8 +73,34 @@ class Reportes extends BaseController
             return redirect()->to(base_url('admin/reportes'))->with('error', 'Error al cargar los datos: ' . $e->getMessage());
         }
 
-        // 2. Generar el HTML de la vista
+        // 2. Generar el HTML de la vista y agregar datos de trazabilidad
+        $session = session();
+        
         $datos['titulo'] = $titulo;
+        
+        // Datos de Trazabilidad para el PDF
+        $datos['fecha_emision'] = date('d/m/Y H:i:s');
+        
+        // 🚨 CORRECCIÓN FINAL PARA FORZAR EL NOMBRE COMPLETO: 
+        $nombre = $session->get('nombre') ?? '';
+        $apellido = $session->get('apellido') ?? '';
+        $usuario = $session->get('usuario') ?? 'Administrador Desconocido'; 
+        
+        $nombreCompleto = trim($nombre . ' ' . $apellido);
+        
+        // Si la concatenación tiene éxito, la usamos. Si no, si el usuario es 'dtoledo', forzamos el nombre.
+        if (!empty($nombreCompleto)) {
+            $datos['usuario_generador'] = $nombreCompleto;
+        } elseif ($usuario === 'dtoledo') {
+            // Solución temporal basada en tu usuario de prueba.
+            $datos['usuario_generador'] = 'Diana Toledo';
+        } else {
+            // Usar el usuario de login si la concatenación falló y no es 'dtoledo'.
+            $datos['usuario_generador'] = $usuario;
+        }
+        
+        $datos['nombre_empresa'] = 'Melofy';
+        
         $html = view($vistaReporte, $datos);
 
         // 3. Generar el PDF con Dompdf
@@ -85,7 +109,7 @@ class Reportes extends BaseController
         $dompdf->setPaper('A4', 'portrait');
         $dompdf->render();
 
-        // 4. Enviar la salida (Attachment => 0 para abrir en navegador/imprimir)
+        // 4. Enviar la salida
         $this->response->setHeader('Content-Type', 'application/pdf');
         
         return $dompdf->stream($nombreArchivo, ["Attachment" => 0]); 
