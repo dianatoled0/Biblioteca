@@ -199,4 +199,46 @@ class App extends BaseConfig
      * @see http://www.w3.org/TR/CSP/
      */
     public bool $CSPEnabled = false;
-}
+
+    /**
+     * --------------------------------------------------------------------------
+     * Environment
+     * --------------------------------------------------------------------------
+     *
+     * Set to 'development' to enable logging and error display.
+     * Set to 'production' for a live site.
+     */
+    public string $environment = 'development';
+
+    /**
+     * --------------------------------------------------------------------------
+     * Session Configuration
+     * --------------------------------------------------------------------------
+     *
+     * These settings configure the session handler. Since CI4 supports multiple
+     * session handlers, you may choose between them here.
+     */
+    public string $sessionDriver = 'CodeIgniter\\Session\\Handlers\\FileHandler';
+
+    public string $sessionCookieName = 'ci_session';
+
+    public int $sessionExpiration = 7200;
+
+    public string $sessionSavePath = WRITEPATH . 'session';
+
+    public bool $sessionMatchIP = false;
+
+    public int $sessionTimeToUpdate = 300;
+
+    public bool $sessionRegenerateDestroy = false;
+
+    /**
+     * --------------------------------------------------------------------------
+     * Debug Toolbar
+     * --------------------------------------------------------------------------
+     *
+     * If true, the Debug Toolbar will be displayed at the bottom of every page.
+     * Note: This setting only works in development mode.
+     */
+    public bool $displayDebugToolbar = true;
+} 

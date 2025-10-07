@@ -8,13 +8,13 @@ use CodeIgniter\Model;
 class TipoMembresiaModel extends Model
 {
     // Configuración principal de la tabla
-    protected $table          = 'tipos_membresia';
-    protected $primaryKey     = 'id';
-    protected $returnType     = 'array';
-    protected $useSoftDeletes = false; 
-    protected $useTimestamps  = false; 
+    protected $table            = 'tipos_membresia';
+    protected $primaryKey       = 'id';
+    protected $returnType       = 'array'; // Importante: retorna un array asociativo
+    protected $useSoftDeletes   = false; 
+    protected $useTimestamps    = false; 
 
-    // Campos permitidos (¡Añadir las nuevas reglas!)
+    // Campos permitidos 
     protected $allowedFields = [
         'nombre',
         'precio',
@@ -26,7 +26,6 @@ class TipoMembresiaModel extends Model
 
     /**
      * Obtiene todas las membresías, incluyendo su duración.
-     * Esto es necesario para el formulario de creación/edición de usuarios.
      * @return array
      */
     public function getAllMembresias(): array
@@ -41,6 +40,15 @@ class TipoMembresiaModel extends Model
      */
     public function getReglasMembresia(int $idMembresia): ?array
     {
-        return $this->find($idMembresia);
+        // Se asegura que el método find() devuelva el resultado
+        $reglas = $this->find($idMembresia);
+        
+        // Si no encuentra el registro, devuelve null, como espera la firma de la función.
+        if ($reglas === null || $reglas === false) {
+            log_message('debug', "Membresía ID: $idMembresia no encontrada para calcular reglas.");
+            return null;
+        }
+
+        return $reglas;
     }
 }

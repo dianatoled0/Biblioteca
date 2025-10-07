@@ -39,6 +39,7 @@ $routes->group('usuario', ['filter' => 'auth', 'namespace' => 'App\Controllers\U
     $routes->get('carrito/obtener', 'CarritoController::obtener');
     $routes->get('carrito/vaciar', 'CarritoController::vaciar');
     $routes->post('carrito/checkout', 'CarritoController::checkout');
+    $routes->post('carrito/eliminar', 'CarritoController::eliminar');
     
     // Rutas para el Filtro de Discos (AJAX)
     $routes->get('ajax/discos', 'UsuariosController::getDiscosByCategory/0');

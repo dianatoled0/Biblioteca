@@ -14,6 +14,9 @@ class Auth implements FilterInterface
 
         // Verifica si el usuario NO está logueado
         if (! $session->get('logged_in')) {
+            if ($request->isAJAX()) {
+                return services()->response->setStatusCode(401)->setJSON(['status' => 'error', 'message' => 'Sesión expirada.']);
+            }
             return redirect()->to('/')->with('error', 'Debes iniciar sesión para acceder.');
         }
     }

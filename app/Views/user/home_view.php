@@ -35,20 +35,24 @@
 
 <?= $this->include('user/_carrito_modal') ?>
 
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/sweetalert/2.1.2/sweetalert.min.js"></script>
 
 <script>
-    // **********************************************
-    // CORRECCIÓN CLAVE: Usar la URL base para el controlador de Carrito
-    // Asumo que tu controlador de Carrito está en la raíz, no dentro de 'usuario'.
-    // Si tu ruta es 'carrito/agregar', esto apunta a http://localhost/biblioteca/public/carrito/agregar
+    // Definiciones de URLs y CSRF
     const BASE_URL = '<?= base_url() ?>';
-    const USER_BASE_URL = '<?= base_url('usuario') ?>'; // Para rutas del usuario (filtros)
+    const USER_BASE_URL = '<?= base_url('usuario') ?>';
+    const CART_BASE_URL = USER_BASE_URL + '/carrito';
 
-    // Si tu ruta de carrito *realmente* está dentro del grupo 'usuario', usa:
-    // const BASE_URL = '<?= base_url('usuario') ?>'; 
-    // Y la línea 354 quedaría: url: BASE_URL + '/carrito/agregar', (como estaba antes)
-    // **********************************************
+    const csrf_token_name = '<?= csrf_token() ?>';
+    const csrf_token_hash = '<?= csrf_hash() ?>';
+
+    // Fuerza header AJAX global para que isAJAX() detecte correctamente
+    $.ajaxSetup({
+        headers: {
+            'X-Requested-With': 'XMLHttpRequest'
+        }
+    });
 
     $(document).ready(function() {
         // --- 1. Inicialización de filtros ---
@@ -59,71 +63,57 @@
         });
 
         // --- 2. Lógica para abrir/cerrar el modal del carrito ---
-        // Listener del icono flotante
         $('#floating-cart-icon').on('click', function() {
             updateCarritoDisplay(); 
             $('#carritoModal').fadeIn(300);
         });
-        // Listener del botón de cerrar
         $('#closeModalBtn').on('click', function() {
             $('#carritoModal').fadeOut(300);
         });
-        // Listener para cerrar al hacer clic en el overlay
         $('#carritoModal').on('click', function(e) {
             if (e.target.id === 'carritoModal') {
                 $(this).fadeOut(300);
             }
         });
 
-
-        // --- 3. Lógica para añadir 1 disco al carrito (CORRECCIÓN CLAVE) ---
-        // Este evento maneja los botones de 'Comprar' estáticos y los creados por AJAX
+        // --- 3. Lógica para añadir 1 disco al carrito ---
         $(document).on('click', '.add-to-cart-btn', function() {
             const discoId = $(this).data('id');
-            // Nota: Aquí se está asumiendo que quieres agregar 1 unidad por cada clic.
             addToCarrito(discoId, 1); 
         });
 
-        // --- 4. Eventos dentro del modal (Usando delegación de eventos) ---
-        
-        // Evento para VACIAR el carrito
+        // --- 4. Eventos dentro del modal ---
         $('#vaciarCarritoBtn').on('click', function() {
             vaciarCarrito();
         });
         
-        // Evento para FINALIZAR la compra (Checkout)
         $('#finalizarCompraBtn').on('click', function() {
             finalizarCompra();
         });
         
-        // Evento para ACTUALIZAR la cantidad dentro del modal
         $('#carrito-items-list').on('change', '.cart-quantity-input', function() {
-            const discoId = $(this).data('id');
+            const rowId = $(this).data('rowid');
             const newQty = parseInt($(this).val());
             if (newQty >= 0) {
-                // LLamada a la función unificada para cambiar cantidad o eliminar (si es 0)
-                actualizarCantidadCarrito(discoId, newQty);
+                actualizarCantidadCarrito(rowId, newQty);
             } else {
-                 $(this).val(1); // Mantiene la cantidad en 1 si se intenta poner negativo
+                 $(this).val(1);
             }
         });
 
-        // Evento para ELIMINAR un ítem del modal (Botón X)
         $('#carrito-items-list').on('click', '.remove-item-btn', function() {
-            const discoId = $(this).data('id');
-            eliminarDelCarrito(discoId);
+            const rowId = $(this).data('rowid');
+            eliminarDelCarrito(rowId);
         });
 
         // Carga el contador inicial
         updateCarritoDisplay(true); 
     });
     
-    // =========================================================
-    // LÓGICA DE FILTRO (Usa USER_BASE_URL)
-    // =========================================================
+    // LÓGICA DE FILTRO
     function filterDiscos(categoryId) {
         $.ajax({
-            url: USER_BASE_URL + '/ajax/discos/' + categoryId, // Usa la URL base de usuario
+            url: USER_BASE_URL + '/ajax/discos/' + categoryId,
             method: 'GET',
             dataType: 'json',
             success: function(response) {
@@ -159,74 +149,45 @@
         $('#allDiscosList').html(html);
     }
     
-    // =========================================================
-    // LÓGICA DE CARRITO Y CHECKOUT (Usa BASE_URL)
-    // =========================================================
-    
-    // Función para formatear a Q 0.00
+    // LÓGICA DE CARRITO Y CHECKOUT
     const formatQuetzal = (number) => {
         return parseFloat(number).toFixed(2);
     };
 
-    /**
-     * Muestra una notificación temporal al usuario.
-     */
-    function showNotification(message, isError = false) {
-        // ... (Tu código de showNotification aquí) ...
-        const notification = $('#cartNotification');
-        // NOTA: No tienes el div #cartNotification en tu vista, así que usa SweetAlert
-        
-        if (isError) {
-             swal("Error", message, "error");
-        } else {
-             swal("Agregado", message, "success");
-        }
-        
-    }
-
-    /**
-     * Agrega un disco al carrito.
-     */
     function addToCarrito(discoId, cantidad) {
         $.ajax({
-            // CORRECCIÓN APLICADA AQUÍ: Usa BASE_URL
-            url: BASE_URL + 'carrito/agregar', 
-            method: 'POST',
-            data: { id: discoId, cantidad: cantidad },
+            url: CART_BASE_URL + '/agregar',
+            type: 'POST',  // Fuerza 'type' para compatibilidad
+            data: { id_disco: discoId, qty: cantidad, [csrf_token_name]: csrf_token_hash },
             dataType: 'json',
             success: function(response) {
                 if (response.status === 'success') {
-                    updateCarritoCount(response.count);
-                    // Usar response.message del controlador
+                    updateCarritoCount(response.total_items);
                     swal("Agregado", response.message, "success");
                 } else {
                     swal("Error", response.message, "error");
                 }
             },
             error: function(xhr, status, error) {
-                // El error de conexión aparece aquí
                 console.error("Error al agregar al carrito. Código:", xhr.status, "Mensaje:", xhr.responseText);
-                swal("Error", "Ocurrió un error de conexión al agregar el disco. Verifique la consola (F12 > Network).", "error");
+                swal("Error", "Ocurrió un error de conexión al agregar el disco. Verifique la consola (F12 > Network). Código: " + xhr.status, "error");
             }
         });
     }
     
-    /**
-     * Actualiza la cantidad de un disco en el carrito.
-     */
-    function actualizarCantidadCarrito(discoId, cantidad) {
+    function actualizarCantidadCarrito(rowId, cantidad) {
         $.ajax({
-            url: BASE_URL + 'carrito/actualizar',
-            method: 'POST',
-            data: { id: discoId, cantidad: cantidad },
+            url: CART_BASE_URL + '/actualizar',
+            type: 'POST',
+            data: { rowid: rowId, qty: cantidad, [csrf_token_name]: csrf_token_hash },
             dataType: 'json',
             success: function(response) {
                 if (response.status === 'success') {
-                    updateCarritoCount(response.count);
-                    updateCarritoDisplay(); // Recarga el modal
+                    updateCarritoCount(response.total_items);
+                    updateCarritoDisplay();
                 } else {
                     swal("Error", response.message, "error");
-                    updateCarritoDisplay(); // Vuelve a cargar el carrito para corregir la cantidad en el input
+                    updateCarritoDisplay();
                 }
             },
             error: function() {
@@ -235,18 +196,15 @@
         });
     }
     
-    /**
-     * Elimina un disco del carrito.
-     */
-    function eliminarDelCarrito(discoId) {
+    function eliminarDelCarrito(rowId) {
         $.ajax({
-            url: BASE_URL + 'carrito/eliminar',
-            method: 'POST',
-            data: { id: discoId }, // Asumo que tu controlador usa el ID del disco
+            url: CART_BASE_URL + '/eliminar',
+            type: 'POST',
+            data: { rowid: rowId, [csrf_token_name]: csrf_token_hash },
             dataType: 'json',
             success: function(response) {
                 if (response.status === 'success') {
-                    updateCarritoCount(response.count);
+                    updateCarritoCount(response.total_items);
                     updateCarritoDisplay();
                 } else {
                     swal("Error", response.message, "error");
@@ -255,30 +213,24 @@
         });
     }
 
-    /**
-     * Obtiene el carrito y actualiza la vista del modal.
-     */
     function updateCarritoDisplay(isInitialLoad = false) {
         $.ajax({
-            url: BASE_URL + 'carrito/obtener',
-            method: 'GET',
+            url: CART_BASE_URL + '/obtener',
+            type: 'GET',
             dataType: 'json',
             success: function(response) {
-                 if (response.status === 'success' && (response.items || response.carrito)) {
-                    // Determinar qué array usar
-                    let itemsArray = response.items || Object.values(response.carrito);
+                if (response.status === 'success' && response.items) {
+                    let itemsArray = response.items;
                     let totales = response.totales || { subtotal: 0, descuento: 0, costo_envio: 0, total_final: 0 };
 
                     renderCarritoModal(itemsArray, totales); 
-                    updateCarritoCount(itemsArray.length);
+                    updateCarritoCount(itemsArray.reduce((sum, item) => sum + item.qty, 0));
                 } else {
-                    // Caso por defecto (carrito vacío)
                     renderCarritoModal([], { subtotal: 0, descuento: 0, costo_envio: 0, total_final: 0 });
                     updateCarritoCount(0);
                 }
             },
             error: function(xhr, status, error) {
-                // Solo muestra error si no es la carga inicial
                 if (!isInitialLoad) {
                     console.error("Error al cargar carrito. Código:", xhr.status, "Mensaje:", xhr.responseText);
                     swal("Error", "No se pudo cargar el carrito. Intente de nuevo.", "error");
@@ -287,65 +239,51 @@
         });
     }
     
-    /**
-     * Renderiza el contenido dentro del modal. (USANDO LA ESTRUCTURA DEL MODAL)
-     */
     function renderCarritoModal(items, totales) {
         const $list = $('#carrito-items-list');
         $list.empty();
         
         const isEmpty = items.length === 0;
         
-        // Muestra u oculta elementos según si hay ítems
         $('#carrito-vacio-msg').toggle(isEmpty);
         $('#carrito-content-header').toggle(!isEmpty);
-        $('#carritoTotalResumen').toggle(!isEmpty); // Muestra/Oculta el resumen de totales
+        $('#carritoTotalResumen').toggle(!isEmpty);
         $('#finalizarCompraBtn').prop('disabled', isEmpty);
 
         if (isEmpty) return;
 
         let html = '';
         items.forEach(function(item) {
-            // Se asume que item.id es el ID del disco.
-            const discoId = item.id; 
-            
             html += `
                 <div class="carrito-item-grid">
                     <div class="carrito-item-info"><strong>${item.name}</strong></div>
                     <div style="text-align: right;">Q ${formatQuetzal(item.price)}</div>
                     <div style="text-align: center;">
                         <input type="number" 
-                                 class="cart-quantity-input" 
-                                 value="${item.qty}" 
-                                 min="1" 
-                                 data-id="${discoId}" 
-                                 style="width: 60px; text-align: center;">
+                               class="cart-quantity-input" 
+                               value="${item.qty}" 
+                               min="0" 
+                               data-rowid="${item.rowid}" 
+                               style="width: 60px; text-align: center;">
                     </div>
                     <div style="text-align: center;">
-                        <button class="btn btn-sm btn-danger remove-item-btn" data-id="${discoId}" style="padding: 2px 8px;">X</button>
+                        <button class="btn btn-sm btn-danger remove-item-btn" data-rowid="${item.rowid}" style="padding: 2px 8px;">X</button>
                     </div>
                 </div>
             `;
         });
         $list.html(html);
         
-        // Actualizar Totales
         $('#resumen-subtotal').text(formatQuetzal(totales.subtotal));
         $('#resumen-descuento').text(formatQuetzal(totales.descuento));
         $('#resumen-envio').text(formatQuetzal(totales.costo_envio));
         $('#resumen-total-final').text(formatQuetzal(totales.total_final));
     }
     
-    /**
-     * Actualiza el contador del carrito en el ícono.
-     */
     function updateCarritoCount(count) {
         $('.cart-count').text(count);
     }
     
-    /**
-     * Llama al endpoint de Checkout.
-     */
     function finalizarCompra() {
         swal({
             title: "¿Confirmar Compra?",
@@ -358,13 +296,14 @@
             if (willCheckout) {
                 $('#carritoModal').fadeOut(300);
                 $.ajax({
-                    url: BASE_URL + 'carrito/checkout',
-                    method: 'POST',
+                    url: CART_BASE_URL + '/checkout',
+                    type: 'POST',
+                    data: { [csrf_token_name]: csrf_token_hash },
                     dataType: 'json',
                     success: function(response) {
                         if (response.status === 'success') {
                             swal("¡Éxito!", "Tu compra se realizó con éxito.", "success");
-                            updateCarritoDisplay(); // Vuelve a cargar y vacía el carrito
+                            updateCarritoDisplay();
                         } else {
                             swal("Error al comprar", response.message, "error");
                         }
@@ -377,9 +316,6 @@
         });
     }
     
-    /**
-     * Llama al endpoint de Vaciar Carrito.
-     */
     function vaciarCarrito() {
         swal({
             title: "¿Vaciar Carrito?",
@@ -390,8 +326,8 @@
         .then((willEmpty) => {
             if (willEmpty) {
                 $.ajax({
-                    url: BASE_URL + 'carrito/vaciar',
-                    method: 'GET',
+                    url: CART_BASE_URL + '/vaciar',
+                    type: 'GET',
                     dataType: 'json',
                     success: function(response) {
                         if (response.status === 'success') {
@@ -405,4 +341,4 @@
     }
 </script>
 
-<?= $this->endSection() ?>
+<?= $this->endSection() ?> 
