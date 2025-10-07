@@ -1,5 +1,5 @@
 <style>
-/* Estilos para el Modal */
+/* ... (MANTEN TUS ESTILOS CSS ORIGINALES AQUI) ... */
 .modal-overlay {
     position: fixed;
     top: 0;
@@ -48,13 +48,25 @@
     border-bottom: 1px solid #2C2A3B;
     align-items: center;
 }
-.carrito-total {
-    margin-top: 20px;
+.carrito-total-resumen { /* Nuevo contenedor para el resumen */
+    margin-top: 15px;
+    padding-top: 15px;
+    border-top: 2px solid #2C2A3B;
+}
+.carrito-total-line {
+    display: flex;
+    justify-content: space-between;
+    font-size: 16px;
+    margin-bottom: 5px;
+}
+.carrito-total-final {
+    display: flex;
+    justify-content: space-between;
     font-size: 20px;
     font-weight: 700;
-    text-align: right;
-    padding-top: 15px;
-    border-top: 2px solid #6D28D9;
+    padding-top: 10px;
+    border-top: 1px dashed #6D28D9;
+    margin-top: 10px;
 }
 .modal-actions {
     display: flex;
@@ -71,8 +83,19 @@
     transition: background-color 0.2s;
 }
 .btn-secondary:hover { background-color: #D97706; }
+.btn-primary {
+    background-color: #6D28D9;
+    color: #FFFFFF;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+.btn-primary:hover:not(:disabled) { background-color: #4C1D95; }
+.btn-primary:disabled { background-color: #4C1D95; opacity: 0.6; cursor: not-allowed; }
 
-/* Estilo para Notificación (Punto 4) */
+/* Estilo para Notificación */
 .cart-notification {
     position: fixed;
     top: 20px;
@@ -110,8 +133,23 @@
             <p id="carrito-vacio-msg">El carrito está vacío.</p>
         </div>
 
-        <div id="carritoTotal" class="carrito-total">
-            Total: Q <span id="carrito-total-monto">0.00</span>
+        <div id="carritoTotalResumen" class="carrito-total-resumen" style="display:none;">
+            <div class="carrito-total-line">
+                <span>Subtotal Productos:</span>
+                <span>Q <span id="resumen-subtotal">0.00</span></span>
+            </div>
+            <div class="carrito-total-line" style="color: #48BB78;">
+                <span>Descuento por Membresía:</span>
+                <span>- Q <span id="resumen-descuento">0.00</span></span>
+            </div>
+            <div class="carrito-total-line">
+                <span>Costo de Envío:</span>
+                <span>Q <span id="resumen-envio">0.00</span></span>
+            </div>
+            <div class="carrito-total-final">
+                <span>TOTAL A PAGAR:</span>
+                <span>Q <span id="resumen-total-final">0.00</span></span>
+            </div>
         </div>
 
         <div class="modal-actions">

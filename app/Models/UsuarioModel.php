@@ -101,6 +101,22 @@ class UsuarioModel extends Model
     }
     
     /**
+     * Obtiene todos los usuarios y su membresía, aplicando un filtro opcional por rol.
+     * @param string|null $rol El rol a filtrar ('admin', 'usuario', o null para todos).
+     */
+    public function getUsuariosConFiltro($rol = null)
+    {
+        $builder = $this->select('usuarios.id, usuarios.usuario, usuarios.nombre, usuarios.apellido, usuarios.correo, usuarios.rol, tipos_membresia.nombre AS nombre_membresia')
+                        ->join('tipos_membresia', 'tipos_membresia.id = usuarios.id_membresia', 'left');
+
+        if ($rol && in_array($rol, ['admin', 'usuario'])) {
+            $builder->where('usuarios.rol', $rol);
+        }
+        
+        return $builder->findAll();
+    }
+
+    /**
      * Obtiene todos los usuarios asociados a una membresía específica.
      * Alias 'id_usuario' usado para que la vista lo reconozca.
      */

@@ -3,128 +3,186 @@
 namespace App\Controllers\Userview;
 
 use App\Controllers\BaseController;
-use CodeIgniter\Controller;
-use App\Models\DiscoModel; 
+use App\Models\DiscoModel;
+use App\Models\UsuarioModel;
+use App\Models\TipoMembresiaModel;
 
 class CarritoController extends BaseController
 {
-    // Es buena práctica inicializar la librería Cart en el constructor
     protected $cart;
+    protected $discoModel;
+    protected $usuarioModel;
+    protected $membresiaModel;
 
     public function __construct()
     {
-        // Inicializa la librería Cart
         $this->cart = \Config\Services::cart();
+        $this->discoModel = new DiscoModel();
+        $this->usuarioModel = new UsuarioModel();
+        $this->membresiaModel = new TipoMembresiaModel();
         helper(['form', 'url']);
     }
 
-    /**
-     * Agrega un disco al carrito. Recibe disco_id y qty por POST.
-     */
-    public function agregar()
+    private function calcularTotales()
     {
-        $id_disco = $this->request->getPost('id_disco');
-        $qty = $this->request->getPost('qty') ?? 1;
+        $subtotal = $this->cart->total();
+        $descuento = 0.00;
+        $costoEnvio = 0.00;
 
-        $discoModel = new DiscoModel();
-        $disco = $discoModel->find($id_disco);
+        $idUsuario = session()->get('id_usuario');
 
-        if (!$disco) {
-            return $this->response->setJSON(['status' => 'error', 'message' => 'Disco no encontrado.']);
+        if ($idUsuario) {
+            try {
+                $usuario = $this->usuarioModel->select('id_membresia')->find($idUsuario);
+
+                if ($usuario && $usuario['id_membresia']) {
+                    $reglas = $this->membresiaModel->getReglasMembresia($usuario['id_membresia']);
+
+                    if ($reglas) {
+                        $porcentajeDescuento = (float)($reglas['descuento_porcentaje'] ?? 0);
+                        $descuento = $subtotal * $porcentajeDescuento;
+
+                        $envioGratisMontoMinimo = (float)($reglas['envio_gratis_monto_minimo'] ?? 0);
+                        $costoEnvioFijo = (float)($reglas['costo_envio_fijo'] ?? 0);
+
+                        if (is_null($reglas['envio_gratis_monto_minimo']) || $subtotal >= $envioGratisMontoMinimo) {
+                            $costoEnvio = 0.00;
+                        } else {
+                            $costoEnvio = $costoEnvioFijo;
+                        }
+                    }
+                }
+            } catch (\Exception $e) {
+                log_message('error', 'Error en calcularTotales: ' . $e->getMessage());
+            }
         }
 
-        // Estructura del ítem para la librería Cart
-        $data = array(
+        $totalFinal = $subtotal - $descuento + $costoEnvio;
+
+        return [
+            'subtotal' => (float)$subtotal,
+            'descuento' => (float)$descuento,
+            'costo_envio' => (float)$costoEnvio,
+            'total_final' => (float)$totalFinal
+        ];
+    }
+
+    public function agregar()
+    {
+        if (!$this->request->isAJAX() || $this->request->getMethod() !== 'post') {
+            return $this->response->setStatusCode(405)->setJSON(['status' => 'error', 'message' => 'Método no permitido.']);
+        }
+
+        $id_disco = $this->request->getPost('id_disco');
+        $qty = (int)($this->request->getPost('qty') ?? 1);
+
+        if (empty($id_disco) || $qty < 1) {
+            return $this->response->setJSON(['status' => 'error', 'message' => 'ID de disco inválido o cantidad menor a 1.']);
+        }
+
+        $disco = $this->discoModel->find($id_disco);
+
+        if (!$disco) {
+            return $this->response->setJSON(['status' => 'error', 'message' => 'Disco no encontrado en la base de datos.']);
+        }
+
+        $data = [
             'id'      => $disco['id'],
             'qty'     => $qty,
             'price'   => $disco['precio_venta'],
-            'name'    => $disco['nombre'],
-            'options' => array('artista' => $disco['artista']) // Puedes añadir opciones extra
-        );
+            'name'    => $disco['titulo'],
+            'options' => ['artista' => $disco['artista']]
+        ];
 
         $this->cart->insert($data);
 
+        $totales = $this->calcularTotales();
+
         return $this->response->setJSON([
-            'status' => 'success', 
+            'status' => 'success',
             'message' => 'Producto agregado al carrito.',
-            'total_items' => $this->cart->totalItems()
+            'total_items' => $this->cart->totalItems(),
+            'total_final' => number_format($totales['total_final'], 2),
         ]);
     }
 
-    /**
-     * **MÉTODO CORREGIDO: Actualiza la cantidad de un ítem en el carrito.**
-     * Recibe rowid (identificador del ítem en el carrito) y qty (nueva cantidad) por POST.
-     */
     public function actualizar()
     {
-        // 1. Obtener datos necesarios del POST
         $rowid = $this->request->getPost('rowid');
         $qty = $this->request->getPost('qty');
 
-        // 2. Validar
         if (!$rowid || !is_numeric($qty) || $qty < 0) {
             return $this->response->setJSON(['status' => 'error', 'message' => 'Datos de actualización inválidos.']);
         }
 
-        // 3. Preparar el array de actualización
-        $data = array(
+        $data = [
             'rowid' => $rowid,
             'qty'   => $qty
-        );
+        ];
 
-        // 4. Aplicar la actualización
         if ($qty == 0) {
-             // Si la cantidad es 0, la librería la elimina, pero para ser explícitos:
-             $this->cart->update(['rowid' => $rowid, 'qty' => 0]);
-             return $this->response->setJSON(['status' => 'success', 'message' => 'Producto eliminado del carrito.']);
+            $this->cart->update(['rowid' => $rowid, 'qty' => 0]);
+            $totales = $this->calcularTotales();
+            return $this->response->setJSON(['status' => 'success', 'message' => 'Producto eliminado del carrito.', 'totales' => $totales]);
         } else {
-             $this->cart->update($data);
-             return $this->response->setJSON(['status' => 'success', 'message' => 'Cantidad actualizada.', 'new_total' => number_format($this->cart->total(), 2)]);
+            $this->cart->update($data);
+            $totales = $this->calcularTotales();
+            return $this->response->setJSON([
+                'status' => 'success',
+                'message' => 'Cantidad actualizada.',
+                'new_total' => number_format($this->cart->total(), 2),
+                'totales' => $totales
+            ]);
         }
     }
 
-    /**
-     * Obtiene el contenido actual del carrito (para mostrar el modal).
-     */
     public function obtener()
     {
-        // Esto generalmente se usa para cargar los datos en el modal.
         $items = $this->cart->contents();
-        $total = $this->cart->total();
-        
+        $totales = $this->calcularTotales();
+
         return $this->response->setJSON([
             'status' => 'success',
-            'items' => array_values($items), // Convertir a array indexado para JS
-            'total' => number_format($total, 2)
+            'items' => array_values($items),
+            'totales' => $totales
         ]);
     }
 
-    /**
-     * Vacía completamente el carrito.
-     */
     public function vaciar()
     {
+        if (!$this->request->isAJAX()) {
+            return redirect()->back()->with('success', 'El carrito ha sido vaciado.');
+        }
+
         $this->cart->destroy();
-        return redirect()->back()->with('success', 'El carrito ha sido vaciado.');
+        $totales = $this->calcularTotales();
+
+        return $this->response->setJSON([
+            'status' => 'success',
+            'message' => 'El carrito ha sido vaciado.',
+            'total_items' => 0,
+            'total_final' => number_format($totales['total_final'], 2),
+        ]);
     }
 
-    /**
-     * Procesa la compra (checkout) y guarda el pedido.
-     * (Esta función requiere la implementación de modelos de Pedidos)
-     */
     public function checkout()
     {
-        // Lógica de checkout aquí (Guardar Pedido, Detalle Pedido, vaciar carrito, etc.)
+        if (!$this->request->isAJAX()) {
+            return redirect()->back()->with('error', 'Acceso denegado.');
+        }
+
         if ($this->cart->totalItems() == 0) {
             return $this->response->setJSON(['status' => 'error', 'message' => 'El carrito está vacío.']);
         }
-        
-        // Simulación:
+
+        $totales = $this->calcularTotales();
+
         $this->cart->destroy();
-        return $this->response->setJSON(['status' => 'success', 'message' => 'Compra finalizada con éxito. ¡Gracias!']);
+
+        return $this->response->setJSON([
+            'status' => 'success',
+            'message' => 'Compra finalizada con éxito. ¡Gracias!',
+            'resumen' => $totales
+        ]);
     }
-    
-    // Nota: La función 'eliminar' ya no es estrictamente necesaria si usas actualizar con qty=0, 
-    // pero si tienes un botón de eliminar dedicado, aquí estaría:
-    // public function eliminar() { ... }
 }

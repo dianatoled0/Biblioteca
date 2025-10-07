@@ -19,7 +19,15 @@ class UsuariosController extends BaseController
 
     public function index()
     {
-        $data['usuarios'] = $this->usuarioModel->getAllUsuariosWithMembresia();
+        // 🚨 CAMBIO CLAVE: Capturar el filtro de rol de la URL
+        $filtroRol = $this->request->getGet('filtro_rol');
+        
+        // Cargar los usuarios usando el nuevo método con filtro
+        $data['usuarios'] = $this->usuarioModel->getUsuariosConFiltro($filtroRol);
+        
+        // Pasar el filtro a la vista para que el selector permanezca seleccionado
+        $data['filtroRol'] = $filtroRol; 
+
         return view('admin/usuarios/index', $data);
     }
 

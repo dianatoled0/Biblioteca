@@ -14,11 +14,14 @@ class TipoMembresiaModel extends Model
     protected $useSoftDeletes = false; 
     protected $useTimestamps  = false; 
 
-    // Campos permitidos
+    // Campos permitidos (¡Añadir las nuevas reglas!)
     protected $allowedFields = [
         'nombre',
         'precio',
         'duracion_meses',
+        'descuento_porcentaje', // Nuevo
+        'envio_gratis_monto_minimo', // Nuevo
+        'costo_envio_fijo', // Nuevo
     ];
 
     /**
@@ -29,5 +32,15 @@ class TipoMembresiaModel extends Model
     public function getAllMembresias(): array
     {
         return $this->select('id, nombre, duracion_meses')->findAll();
+    }
+
+    /**
+     * Obtiene los detalles completos de una membresía, incluyendo las reglas de compra.
+     * @param int $idMembresia ID de la membresía.
+     * @return array|null
+     */
+    public function getReglasMembresia(int $idMembresia): ?array
+    {
+        return $this->find($idMembresia);
     }
 }

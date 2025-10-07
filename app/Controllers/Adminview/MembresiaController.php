@@ -24,16 +24,27 @@ class MembresiaController extends BaseController
 
         $membresias_completas = [];
         
-        // Se han quitado los emojis de los íconos (solo se mantiene la descripción)
+        // 🚨 CAMBIO CLAVE: Nuevas características de membresía
         $caracteristicas = [
             1 => [ // ID 1: Básica
-                'desc' => '5% de descuento en discos seleccionados. Acceso anticipado a lanzamientos. Boletín mensual.'
+                // Usamos <li> para estructurar la información, que luego limpiaremos en la vista
+                'desc' => '
+                    Descuento: 5% en toda la tienda.
+                    Costo de envío: Q35.
+                    Envío gratuito en compras mayores a Q250.
+                    Tiempo de entrega: hasta 1 mes.'
             ],
             2 => [ // ID 2: Estándar
-                'desc' => '10% de descuento en discos y artículos. Envío gratuito en compras > Q250. Doble acumulación de puntos.'
+                'desc' => '
+                    Descuento: 15% en toda la tienda.
+                    Envío gratuito.
+                    Tiempo de entrega: entre 15 y 20 días.'
             ],
             3 => [ // ID 3: Premium
-                'desc' => '15–20% de descuento en toda la tienda. Entrada prioritaria a preventas. Kit de bienvenida.'
+                'desc' => '
+                    Descuento: 25% en toda la tienda.
+                    Envío gratuito.
+                    Beneficios adicionales: Acceso prioritario a preventas y Entrega prioritaria de productos.'
             ]
         ];
 
@@ -42,21 +53,20 @@ class MembresiaController extends BaseController
             $id = $membresia['id'];
             if (isset($caracteristicas[$id])) {
                 $membresias_completas[] = [
-                    'id'            => $id,
-                    // Se ha quitado la concatenación del ícono
-                    'nombre'        => 'Membresía ' . $membresia['nombre'],
-                    'precio'        => $membresia['precio'],
-                    'duracion'      => $membresia['duracion_meses'],
-                    'caracteristicas' => $caracteristicas[$id]['desc']
+                    'id'              => $id,
+                    'nombre'          => 'Membresía ' . $membresia['nombre'],
+                    'precio'          => $membresia['precio'],
+                    'duracion'        => $membresia['duracion_meses'],
+                    'caracteristicas' => $caracteristicas[$id]['desc'] // Se pasa el texto con saltos de línea
                 ];
             } else {
                  $membresias_completas[] = [
-                    'id'            => $id,
-                    'nombre'        => 'Membresía ' . $membresia['nombre'],
-                    'precio'        => $membresia['precio'],
-                    'duracion'      => $membresia['duracion_meses'],
+                    'id'              => $id,
+                    'nombre'          => 'Membresía ' . $membresia['nombre'],
+                    'precio'          => $membresia['precio'],
+                    'duracion'        => $membresia['duracion_meses'],
                     'caracteristicas' => 'Sin descripción.'
-                ];
+                 ];
             }
         }
 
@@ -71,7 +81,6 @@ class MembresiaController extends BaseController
     /**
      * Muestra los usuarios asignados a una membresía específica.
      */
-    // CORRECCIÓN: Se cambió 'publicric' por 'public'
     public function usuarios($idMembresia = null) 
     {
         if (empty($idMembresia) || !is_numeric($idMembresia)) {

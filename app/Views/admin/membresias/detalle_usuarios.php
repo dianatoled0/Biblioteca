@@ -13,8 +13,11 @@
                 Lista de Usuarios: <?= esc($membresia['nombre']); ?>
             </h3>
             
-            <a href="<?= base_url('admin/membresias'); ?>" class="btn-primary" style="text-decoration: none; display: inline-flex; align-items: center; gap: 8px; font-size: 14px; padding: 8px 16px; background-color: #2C2A3B; border: 1px solid #2C2A3B;">
-                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>
+            <a href="<?= base_url('admin/membresias'); ?>" class="btn-primary" style="text-decoration: none; display: inline-flex; align-items: center; gap: 8px; font-size: 14px; padding: 8px 16px;">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon">
+                    <line x1="19" y1="12" x2="5" y2="12"></line>
+                    <polyline points="12 19 5 12 12 5"></polyline>
+                </svg>
                 Volver a Tipos de Membresía
             </a>
         </div>

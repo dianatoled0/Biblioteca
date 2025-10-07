@@ -25,6 +25,44 @@ $this->extend('admin/layout');
 
     <div style="border-bottom: 1px solid #2C2A3B; margin-top: 20px; margin-bottom: 20px;"></div>
 
+    <div class="row mb-4" style="margin-bottom: 15px; padding: 0 10px;">
+        <div class="col-md-3">
+            <form action="<?= base_url('admin/usuarios'); ?>" method="get" class="form-inline" style="display: flex; align-items: center;">
+                <label for="filtro_rol" style="color: #bbb; margin-right: 10px; font-size: 14px;">Filtrar por Rol:</label>
+                <select 
+                    name="filtro_rol" 
+                    id="filtro_rol" 
+                    class="form-control" 
+                    onchange="this.form.submit()"
+                    style="
+                        padding: 8px 12px;
+                        border-radius: 6px;
+                        border: 1px solid #444; 
+                        background-color: #333; 
+                        color: #FFFFFF; 
+                        font-size: 14px;
+                        cursor: pointer;
+                        
+                        /* Estilos clave para mostrar una flecha personalizada compatible: */
+                        -webkit-appearance: none; 
+                        -moz-appearance: none; 
+                        appearance: none; 
+                        
+                        /* Se usa una flecha SVG codificada en base64 para garantizar la visibilidad */
+                        background-image: url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxNiIgaGVpZ2h0PSIxNiIgdmlld0JveD0iMCAwIDI0IDI0IiBmaWxsPSJub25lIiBzdHJva2U9IiNGRkZGRkYiIHN0cm9rZS13aWR0aD0iMiIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIiBzdHJva2UtbGluZWpvaW49InJvdW5kIiBjbGFzcz0iaWNvbiI+PHBvbHlsaW5lIHBvaW50cz0iNiA5IDEyIDE1IDE4IDkiPjwvcG9seWxpbmU+PC9zdmc+');
+                        
+                        background-repeat: no-repeat;
+                        background-position: right 8px center;
+                        padding-right: 30px; /* Espacio para la flecha */
+                    "
+                >
+                    <option value="" style="background-color: #333; color: #FFFFFF;">Todos los Roles</option>
+                    <option value="admin" style="background-color: #333; color: #FFFFFF;" <?= (isset($filtroRol) && $filtroRol === 'admin') ? 'selected' : '' ?>>Administrador</option>
+                    <option value="usuario" style="background-color: #333; color: #FFFFFF;" <?= (isset($filtroRol) && $filtroRol === 'usuario') ? 'selected' : '' ?>>Usuario</option>
+                </select>
+            </form>
+        </div>
+    </div>
     <div class="card-body">
         <div class="table-container">
             <table>
