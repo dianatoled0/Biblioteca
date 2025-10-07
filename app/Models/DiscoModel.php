@@ -8,10 +8,10 @@ class DiscoModel extends Model
     protected $primaryKey    = 'id';
     protected $returnType    = 'array';
     
-    protected $useTimestamps    = false;
-    protected $useSoftDeletes   = false;
+    protected $useTimestamps     = false;
+    protected $useSoftDeletes    = false;
     
-    protected $allowedFields    = [
+    protected $allowedFields     = [
         'titulo', 
         'artista', 
         'precio_venta',
@@ -41,7 +41,6 @@ class DiscoModel extends Model
     
     /**
      * Obtiene todos los discos, incluyendo el nombre de la categoría.
-     * La columna corregida es 'categorias.nom_categoria'.
      */
     public function getDiscos()
     {
@@ -52,10 +51,10 @@ class DiscoModel extends Model
 
     /**
      * Obtiene los discos por ID de categoría, incluyendo el nombre.
-     * La columna corregida es 'categorias.nom_categoria'.
      */
     public function getDiscosByCategory($id_categoria)
     {
+        // CLAVE: Filtra por la categoría solicitada
         return $this->select('discos.*, categorias.nom_categoria AS nom_categoria')
                     ->join('categorias', 'categorias.id = discos.id_categoria', 'left')
                     ->where('discos.id_categoria', $id_categoria)
@@ -69,7 +68,6 @@ class DiscoModel extends Model
     {
         return $this->db->table('discos')
                         ->where('id', $discoId)
-                        // Usa set() con el tercer parámetro 'false' para ejecutar la operación SQL
                         ->set('stock', 'stock - ' . (int)$cantidadVendida, false) 
                         ->update();
     }

@@ -15,33 +15,29 @@ class UsuariosController extends BaseController
 
     public function __construct()
     {
-        // Inicialización de modelos
         $this->discoModel = new DiscoModel();
         $this->categoriaModel = new CategoriaModel();
         $this->usuarioModel = new UsuarioModel();
         $this->membresiaModel = new TipoMembresiaModel(); 
     }
 
-    /**
-     * Muestra la página principal (Home/Tienda).
-     * Ruta: GET /usuario
-     */
     public function index()
     {
+        // INTENTAR nombre_completo, luego usuario, luego el valor por defecto
+        $nombreUsuario = session()->get('nombre_completo') 
+                         ?? session()->get('usuario') 
+                         ?? 'Usuario'; 
+        
         $data = [
             'latestDiscos' => $this->discoModel->getDiscos(),
             'categorias' => $this->categoriaModel->findAll(),
             'allDiscos' => $this->discoModel->getDiscos(),
+            'nombreUsuario' => $nombreUsuario
         ];
 
-        // CORRECCIÓN: Renderiza directamente la vista de contenido (que extiende el layout)
         return view('user/home_view', $data);
     }
 
-    /**
-     * Muestra la página de Membresías del usuario logueado.
-     * Ruta: GET /usuario/membresias
-     */
     public function membresias()
     {
         $userId = session()->get('id'); 
@@ -53,22 +49,27 @@ class UsuariosController extends BaseController
         
         $data['tipos_membresia'] = $this->membresiaModel->findAll();
 
-        // CORRECCIÓN: Renderiza directamente la vista de contenido (que extiende el layout)
         return view('user/membresias_view', $data);
     }
-
+    
     /**
-     * Endpoint AJAX: Obtiene discos filtrados por ID de categoría o todos.
-     * Ruta: GET /usuario/ajax/discos/(:num)
+     * Maneja la llamada AJAX para filtrar discos por categoría. (SOLUCIÓN AL ERROR DE FILTRO)
+     * Ruta: /usuario/ajax/discos/(:num)
      */
-    public function getDiscosByCategory($id_categoria)
+    public function getDiscosByCategory($id_categoria = 0)
     {
+        // Si $id_categoria es 0, obtenemos todos los discos
         if ($id_categoria == 0) {
             $discos = $this->discoModel->getDiscos(); 
         } else {
+            // Llamamos al método del modelo que filtra por ID
             $discos = $this->discoModel->getDiscosByCategory($id_categoria); 
         }
 
-        return $this->response->setJSON(['status' => 'success', 'discos' => $discos]);
+        // Devolvemos la respuesta en formato JSON
+        return $this->response->setJSON([
+            'status' => 'success', 
+            'discos' => $discos
+        ]);
     }
 }

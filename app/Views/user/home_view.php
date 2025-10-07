@@ -3,7 +3,7 @@
 <?= $this->section('content') ?>
 
 <header class="main-header">
-    <h2>Bienvenido a Melofy</h2>
+    <h2>Bienvenido, <?= esc($nombreUsuario) ?> a Melofy</h2>
     <h3>Explora Nuestros Discos</h3>
 </header>
 
@@ -20,7 +20,7 @@
             <div class="disk-card" data-id="<?= esc($disco['id']) ?>">
                 <h4><?= esc($disco['titulo']) ?></h4>
                 <p>Artista: <?= esc($disco['artista']) ?></p>
-                <p>Categoría: <?= esc($disco['nom_categoria'] ?? 'N/A') ?></p>
+                <p>Categoría: <?= esc($disco['nom_categoria'] ?? 'N/A') ?></p> 
                 <p class="price">Precio: Q <?= number_format(esc($disco['precio_venta']), 2) ?></p>
                 
                 <button class="btn-primary add-to-cart-btn" data-id="<?= esc($disco['id']) ?>" data-stock="<?= esc($disco['stock']) ?>">
@@ -36,7 +36,6 @@
 <?= $this->include('user/_carrito_modal') ?>
 
 <script>
-    // Inicializa la variable BASE_URL para ser usada en carrito.js
     const BASE_URL = '<?= base_url('usuario') ?>';
 
     $(document).ready(function() {
@@ -47,21 +46,20 @@
             filterDiscos($(this).data('id'));
         });
 
-        // Lógica para añadir al carrito (Debe llamar a una función definida en carrito.js)
+        // Lógica para añadir al carrito
         $('#allDiscosList').on('click', '.add-to-cart-btn', function() {
-            addToCarrito($(this).data('id'), 1);
+            addToCarrito($(this).data('id'), 1); 
         });
 
-        // Inicializa el contenido del carrito al cargar la página
         updateCarritoDisplay();
     });
 
     /**
      * Función AJAX para obtener y actualizar el grid de discos.
-     * Esta función debe estar definida en public/js/carrito.js
      */
     function filterDiscos(categoryId) {
         $.ajax({
+            // CLAVE: La URL llama al método del controlador
             url: BASE_URL + '/ajax/discos/' + categoryId,
             method: 'GET',
             dataType: 'json',
@@ -71,6 +69,7 @@
                 }
             },
             error: function() {
+                // Si ves este alert, el problema fue en el servidor (el controlador)
                 alert('Error al cargar los discos.');
             }
         });

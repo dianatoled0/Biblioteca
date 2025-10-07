@@ -9,14 +9,13 @@ class Login extends BaseController
     public function index()
     {
         $session = session();
-        // Si ya está logueado, redirigir según rol
         if ($session->get('logged_in')) {
             return $session->get('rol') === 'admin' 
                 ? redirect()->to('/admin') 
                 : redirect()->to('/usuario');
         }
 
-        return view('login'); // archivo: app/Views/login.php
+        return view('login');
     }
 
     public function autenticar()
@@ -33,27 +32,34 @@ class Login extends BaseController
                                 ->first();
 
         if ($usuario) {
-            // Guardar datos en sesión
+            
+            // CONCATENAR 'nombre' y 'apellido' de la base de datos
+            $nombreCompleto = trim($usuario['nombre'] . ' ' . $usuario['apellido']);
+            
+            // Usar el username como último recurso
+            $nombreCompleto = !empty($nombreCompleto) ? $nombreCompleto : $usuario['usuario']; 
+            
+            // Establecer la sesión
             $session->set([
-                'id'        => $usuario['id'],
-                'usuario'   => $usuario['usuario'],
-                'rol'       => $usuario['rol'],
-                'logged_in' => true,
+                'id'                => $usuario['id'],
+                'usuario'           => $usuario['usuario'], 
+                'rol'               => $usuario['rol'],
+                'logged_in'         => true,
+                'nombre_completo'   => $nombreCompleto, // CLAVE: Nombre completo para el saludo
             ]);
 
-            // Redirigir según rol
             return $usuario['rol'] === 'admin' 
                 ? redirect()->to('/admin') 
                 : redirect()->to('/usuario');
         } else {
             $session->setFlashdata('error', 'Usuario o contraseña incorrectos');
-            return redirect()->to('/'); // login en la raíz
+            return redirect()->to('/');
         }
     }
 
     public function logout()
     {
         session()->destroy();
-        return redirect()->to('/'); // login en la raíz
+        return redirect()->to('/');
     }
 }
