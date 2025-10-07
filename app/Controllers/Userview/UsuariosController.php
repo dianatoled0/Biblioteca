@@ -1,4 +1,4 @@
-<?php namespace App\Controllers\Userview; // <-- ¡Namespace Correcto!
+<?php namespace App\Controllers\Userview;
 
 use App\Controllers\BaseController;
 use App\Models\DiscoModel;
@@ -29,15 +29,13 @@ class UsuariosController extends BaseController
     public function index()
     {
         $data = [
-            'latestDiscos' => $this->discoModel->getDiscos(), // Cambiado a getDiscos() para mostrar todo
+            'latestDiscos' => $this->discoModel->getDiscos(),
             'categorias' => $this->categoriaModel->findAll(),
             'allDiscos' => $this->discoModel->getDiscos(),
         ];
 
-        // Usa tu layout_user.php en la carpeta layoutuser/
-        return view('layoutuser/layout_user', [
-            'content' => view('user/home_view', $data)
-        ]);
+        // CORRECCIÓN: Renderiza directamente la vista de contenido (que extiende el layout)
+        return view('user/home_view', $data);
     }
 
     /**
@@ -55,10 +53,8 @@ class UsuariosController extends BaseController
         
         $data['tipos_membresia'] = $this->membresiaModel->findAll();
 
-        // Usa tu layout_user.php en la carpeta layoutuser/
-        return view('layoutuser/layout_user', [
-            'content' => view('user/membresias_view', $data)
-        ]);
+        // CORRECCIÓN: Renderiza directamente la vista de contenido (que extiende el layout)
+        return view('user/membresias_view', $data);
     }
 
     /**
