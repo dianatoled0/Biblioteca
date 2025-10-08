@@ -26,23 +26,45 @@
             </div>
         <?php endif; ?>
 
-        <div class="form-actions" style="margin-bottom: 20px;">
-             <form method="get" action="<?= base_url('admin/pedidos') ?>" style="display: flex; gap: 10px; align-items: center;">
-                <label for="membresia_id" style="font-weight: bold;">Filtrar por Membresía:</label>
-                <select name="membresia_id" id="membresia_id" style="padding: 8px; border-radius: 4px; border: 1px solid #4A5568; background-color: #2D3748; color: #E2E8F0;">
-                    <option value="">Todas</option>
+        <div class="form-actions" style="margin-bottom: 20px; display: flex; justify-content: flex-start; align-items: center; gap: 10px;">
+            <form method="get" action="<?= base_url('admin/pedidos') ?>" style="display: flex; gap: 10px; align-items: center;">
+                
+                <label for="membresia_id" style="color: #bbb; margin-right: 10px; font-size: 14px;">Filtrar por Membresía:</label>
+                
+                <select 
+                    name="membresia_id" 
+                    id="membresia_id" 
+                    class="form-control" 
+                    onchange="this.form.submit()" 
+                    style="
+                        padding: 8px 12px;
+                        border-radius: 6px; 
+                        border: 1px solid #444; 
+                        background-color: #333; 
+                        color: #FFFFFF; 
+                        font-size: 14px;
+                        cursor: pointer;
+                        
+                        -webkit-appearance: none; 
+                        -moz-appearance: none; 
+                        appearance: none; 
+                        
+                        background-image: url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxNiIgaGVpZ2h0PSIxNiIgdmlld0JveD0iMCAwIDI0IDI0IiBmaWxsPSJub25lIiBzdHJva2U9IiNGRkZGRkYiIHN0cm9rZS13aWR0aD0iMiIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIiBzdHJva2UtbGluZWpvaW49InJvdW5kIiBjbGFzcz0iaWNvbiI+PHBvbHlsaW5lIHBvaW50cz0iNiA5IDEyIDE1IDE4IDkiPjwvcG9seWxpbmU+PC9zdmc+');
+                        
+                        background-repeat: no-repeat;
+                        background-position: right 8px center;
+                        padding-right: 30px; 
+                    "
+                >
+                    <option value="" style="background-color: #333; color: #FFFFFF;">Todas las Membresías</option>
                     <?php foreach ($membresias as $membresia): ?>
                         <option value="<?= $membresia['id'] ?>"
+                            style="background-color: #333; color: #FFFFFF;"
                             <?= $selected_membresia == $membresia['id'] ? 'selected' : '' ?>>
-                            <?= esc($membresia['nombre']) ?> 
-                            (<?= number_format(($membresia['descuento_porcentaje'] ?? 0) * 100, 0) ?>%)
+                            <?= esc($membresia['nombre']) ?> (<?= number_format(($membresia['descuento_porcentaje'] ?? 0) * 100, 0) ?>%)
                         </option>
                     <?php endforeach; ?>
                 </select>
-                <button type="submit" class="btn-primary" style="padding: 8px 15px; background-color: #4C51BF; color: white; border: none; border-radius: 4px; cursor: pointer;">Aplicar Filtro</button>
-                <?php if ($selected_membresia): ?>
-                    <a href="<?= base_url('admin/pedidos') ?>" class="btn-secondary" style="padding: 8px 15px; background-color: #718096; color: white; border-radius: 4px; text-decoration: none;">Limpiar Filtro</a>
-                <?php endif; ?>
             </form>
         </div>
 
@@ -58,8 +80,7 @@
                         <th>Monto Total</th> 
                         <th>Estado</th>
                         <th>Fecha de Entrega</th>
-                        <th>Acciones</th>
-                    </tr>
+                        <th>Ver Detalle</th> </tr>
                 </thead>
                 <tbody>
                     <?php foreach ($pedidos as $pedido): ?>
@@ -89,8 +110,7 @@
                             <td><?= !empty($pedido['fecha_entrega']) ? date('d/m/Y', strtotime($pedido['fecha_entrega'])) : '---' ?></td>
 
                             <td class="table-actions">
-                                <a href="<?= base_url('admin/pedidos/detalle/' . $pedido['id']) ?>" title="Ver Detalle" style="color: #63B3ED; text-decoration: none;">
-                                    <svg class="icon" viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+                                <a href="<?= base_url('admin/pedidos/detalle/' . $pedido['id']) ?>" title="Ver Detalle" style="color: #63B3ED; text-decoration: underline; font-weight: 500;"> Ver detalles
                                 </a>
                             </td>
                         </tr>
