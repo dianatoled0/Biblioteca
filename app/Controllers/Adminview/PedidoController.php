@@ -3,6 +3,7 @@
 use App\Controllers\BaseController;
 use App\Models\PedidoModel;
 use App\Models\TipoMembresiaModel; 
+use CodeIgniter\CLI\CLI; // Opcional, pero útil
 
 class PedidoController extends BaseController
 {
@@ -25,10 +26,10 @@ class PedidoController extends BaseController
         $membresia_id = $this->request->getGet('membresia_id');
 
         $data = [
-            'pedidos' => $this->pedidoModel->getPedidosConUsuario($membresia_id), // Usamos el nuevo método con filtro
-            'membresias' => $this->membresiaModel->getAllMembresias(), // Para el dropdown del filtro
-            'selected_membresia' => $membresia_id, // Para mantener la opción seleccionada
-            'estados_validos' => ['Pendiente', 'Enviado', 'Entregado'], // Para la lógica de estado en la vista
+            'pedidos' => $this->pedidoModel->getPedidosConUsuario($membresia_id),
+            'membresias' => $this->membresiaModel->getAllMembresias(),
+            'selected_membresia' => $membresia_id,
+            'estados_validos' => ['Pendiente', 'Enviado', 'Entregado'],
         ];
         
         return view('admin/pedidos/index', $data);
@@ -43,7 +44,6 @@ class PedidoController extends BaseController
             return redirect()->to(base_url('admin/pedidos'));
         }
         
-        // Usamos el método que trae toda la info para el admin
         $pedido = $this->pedidoModel->getDetallePedidoAdmin($id);
 
         if (!$pedido) {
@@ -52,7 +52,6 @@ class PedidoController extends BaseController
         }
         
         $data = ['pedido' => $pedido];
-        // Nota: La vista de detalle debe llamarse 'detalle.php', no 'form.php'
         return view('admin/pedidos/detalle', $data); 
     }
 
@@ -61,8 +60,9 @@ class PedidoController extends BaseController
      */
     public function cambiarEstado($id)
     {
-        if ($this->request->getMethod() !== 'post') {
-             return redirect()->back(); // Solo POST permitido
+        // 1. Verificación estricta de POST
+        if (!$this->request->is('post')) {
+            return redirect()->back();
         }
 
         $nuevoEstado = $this->request->getPost('estado');
@@ -73,12 +73,41 @@ class PedidoController extends BaseController
             return redirect()->back();
         }
 
-        if ($this->pedidoModel->actualizarEstado($id, $nuevoEstado)) {
+        // 2. Ejecutar la actualización
+        $actualizado = $this->pedidoModel->actualizarEstado($id, $nuevoEstado);
+
+        if ($actualizado) {
+            
             session()->setFlashdata('success', 'Estado del pedido #' . $id . ' actualizado a ' . $nuevoEstado . '.');
+            
         } else {
-            session()->setFlashdata('error', 'Error al actualizar el estado del pedido.');
+            // --- DETECCIÓN DE ERRORES CRÍTICA ---
+            // Si el modelo devuelve false, significa que el update falló.
+            
+            // Si estás en desarrollo, detenemos la ejecución para debug.
+            if (ENVIRONMENT !== 'production') {
+                 // Recuperamos el error de la base de datos para mostrarlo
+                 $error = $this->db->error();
+                 
+                 // Construimos los datos que se intentaron actualizar
+                 $data_intentada = [
+                    'estado_pedido' => $nuevoEstado,
+                    'fecha_entrega' => ($nuevoEstado === 'Entregado' ? date('Y-m-d H:i:s') : null)
+                 ];
+                 
+                 // Usamos dd() para mostrar el error y detener la ejecución.
+                 dd("ERROR FATAL EN LA ACTUALIZACIÓN:", [
+                     "Mensaje de CodeIgniter" => "La función 'update' falló o devolvió 0 filas afectadas. Revise los logs del servidor.",
+                     "ID de Pedido" => $id,
+                     "Datos Intentados" => $data_intentada,
+                     "Error de la Base de Datos" => $error['message'] ?? "No se encontró un mensaje de error específico (Puede ser un problema de allowedFields)."
+                 ]);
+            }
+            
+            session()->setFlashdata('error', 'Error al actualizar el estado del pedido. Verifique el ID o si el campo ya tiene ese estado.');
         }
 
+        // 3. Redirección final
         return redirect()->back();
     }
 }

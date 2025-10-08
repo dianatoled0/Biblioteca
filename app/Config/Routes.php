@@ -102,6 +102,10 @@ $routes->group('admin', ['namespace' => 'App\Controllers\Adminview', 'filter' =>
     // 7. RUTAS PARA PEDIDOS (Llaman a PedidoController)
     $routes->get('pedidos', 'PedidoController::index');
     $routes->get('pedidos/detalle/(:num)', 'PedidoController::verDetalle/$1');
+    
+    // === ESTA RUTA FALTABA O ESTABA EN GET: Ahora está correcta en POST ===
+    $routes->post('pedidos/estado/(:num)', 'PedidoController::cambiarEstado/$1'); 
+
     $routes->get('recibos', 'Admin::recibos');
     $routes->get('recibos/detalle/(:num)', 'Admin::detalleRecibo/$1');
 

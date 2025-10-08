@@ -46,9 +46,9 @@ class UsuariosController extends BaseController
         $userId = session()->get('id'); 
         
         $data['usuario'] = $this->usuarioModel
-                                 ->select('usuarios.*, tipos_membresia.nombre as nombre_membresia, tipos_membresia.precio, tipos_membresia.duracion_meses')
-                                 ->join('tipos_membresia', 'tipos_membresia.id = usuarios.id_membresia', 'left')
-                                 ->find($userId);
+                             ->select('usuarios.*, tipos_membresia.nombre as nombre_membresia, tipos_membresia.precio, tipos_membresia.duracion_meses')
+                             ->join('tipos_membresia', 'tipos_membresia.id = usuarios.id_membresia', 'left')
+                             ->find($userId);
         
         $data['tipos_membresia'] = $this->membresiaModel->findAll();
 
@@ -79,16 +79,19 @@ class UsuariosController extends BaseController
             return redirect()->back();
         }
 
-        $detalleData = $this->pedidoModel->getDetallePedido($idPedido);
+        // CORRECCIÓN: Llamar al método correcto del modelo
+        $detalleData = $this->pedidoModel->getDetallePedidoUsuario($idPedido);
+        
         $userId = session()->get('id');
 
         // Seguridad: Verificar que el pedido exista y pertenezca al usuario logueado
-        if (empty($detalleData) || $detalleData['pedido']['id_user'] != $userId) {
+        if (empty($detalleData) || $detalleData['id_user'] != $userId) {
             return redirect()->to(base_url('usuario/compras'))->with('error', 'Pedido no encontrado o no autorizado.');
         }
 
-        $data['pedido'] = $detalleData['pedido'];
-        $data['detalle'] = $detalleData['detalle'];
+        // Pasar la data a la vista. $detalleData contiene cabecera, reglas y el índice 'detalle'.
+        $data['pedido'] = $detalleData; 
+        $data['detalle'] = $detalleData['detalle']; // Extraer el detalle para facilidad en la vista
         $data['title'] = 'Detalle de Compra #' . $idPedido;
 
         // Cargar la vista para el detalle
