@@ -8,11 +8,11 @@ use CodeIgniter\Model;
 class TipoMembresiaModel extends Model
 {
     // Configuración principal de la tabla
-    protected $table            = 'tipos_membresia';
-    protected $primaryKey       = 'id';
-    protected $returnType       = 'array'; // Importante: retorna un array asociativo
-    protected $useSoftDeletes   = false; 
-    protected $useTimestamps    = false; 
+    protected $table          = 'tipos_membresia';
+    protected $primaryKey     = 'id';
+    protected $returnType     = 'array'; // Importante: retorna un array asociativo
+    protected $useSoftDeletes = false; 
+    protected $useTimestamps  = false; 
 
     // Campos permitidos 
     protected $allowedFields = [
@@ -25,19 +25,28 @@ class TipoMembresiaModel extends Model
     ];
 
     /**
+     * Obtiene todos los campos de las membresías.
+     * Esencial para la vista de compra donde se necesita el precio, duración y beneficios.
+     * @return array
+     */
+    public function getTiposMembresiaParaVista(): array
+    {
+        return $this->findAll();
+    }
+
+    /**
      * Obtiene todas las membresías, incluyendo su duración.
-     * Se usa para el dropdown del filtro.
+     * Se usa para el dropdown del filtro (método original).
      * @return array
      */
     public function getAllMembresias(): array
     {
-        // CORRECCIÓN: Se agrega 'descuento_porcentaje' para el dropdown del filtro.
         return $this->select('id, nombre, duracion_meses, descuento_porcentaje')->findAll();
     }
 
     /**
      * Obtiene las reglas de descuento y envío necesarias para el carrito.
-     * * @param int $idMembresia ID de la membresía.
+     * @param int $idMembresia ID de la membresía.
      * @return array|null Solo los campos de reglas, o null si no se encuentra.
      */
     public function getReglasMembresia(int $idMembresia): ?array

@@ -31,7 +31,10 @@ $routes->group('usuario', ['filter' => 'auth', 'namespace' => 'App\Controllers\U
     
     // Vistas principales (UsuariosController)
     $routes->get('/', 'UsuariosController::index'); 
-    $routes->get('membresias', 'UsuariosController::membresias'); 
+    
+    // 🚨 Rutas para Membresías: Apuntan al nuevo MembresiaController
+    $routes->get('membresias', 'MembresiaController::index', ['as' => 'user_membresias']); 
+    $routes->post('membresias/comprar', 'MembresiaController::comprar', ['as' => 'user_comprar_membresia']); // Ruta para el proceso de compra (AJAX)
     
     // NUEVAS RUTAS DE COMPRAS
     $routes->get('compras', 'UsuariosController::compras'); // Muestra la lista de compras
@@ -65,7 +68,7 @@ $routes->group('admin', ['namespace' => 'App\Controllers\Adminview', 'filter' =>
     $routes->post('categorias/guardar', 'CategoriaController::guardar');
     $routes->get('categorias/editar/(:num)', 'CategoriaController::editar/$1');
     $routes->post('categorias/actualizar/(:num)', 'CategoriaController::actualizar/$1');
-    $routes->post('categorias/eliminar/(:num)', 'CategoriaController::eliminar/$1'); // <--- CAMBIO DE GET A POST
+    $routes->post('categorias/eliminar/(:num)', 'CategoriaController::eliminar/$1'); 
 
     // 3. CRUD DISCOS (Llaman a DiscoController)
     $routes->get('discos', 'DiscoController::index');
@@ -73,7 +76,7 @@ $routes->group('admin', ['namespace' => 'App\Controllers\Adminview', 'filter' =>
     $routes->post('discos/guardar', 'DiscoController::guardar');
     $routes->get('discos/editar/(:num)', 'DiscoController::editar/$1');
     $routes->post('discos/actualizar/(:num)', 'DiscoController::actualizar/$1');
-    $routes->post('discos/eliminar/(:num)', 'DiscoController::eliminar/$1'); // <--- CAMBIO DE GET A POST
+    $routes->post('discos/eliminar/(:num)', 'DiscoController::eliminar/$1'); 
 
     // 4. RUTAS DE USUARIOS 
     $routes->get('usuarios', 'UsuariosController::index');
@@ -103,13 +106,13 @@ $routes->group('admin', ['namespace' => 'App\Controllers\Adminview', 'filter' =>
     $routes->get('pedidos', 'PedidoController::index');
     $routes->get('pedidos/detalle/(:num)', 'PedidoController::verDetalle/$1');
     
-    // === ESTA RUTA FALTABA O ESTABA EN GET: Ahora está correcta en POST ===
+    // === ESTA RUTA ESTÁ CORRECTA EN POST ===
     $routes->post('pedidos/estado/(:num)', 'PedidoController::cambiarEstado/$1'); 
 
     $routes->get('recibos', 'Admin::recibos');
     $routes->get('recibos/detalle/(:num)', 'Admin::detalleRecibo/$1');
 
-    // 8. RUTAS PARA REPORTES (Llaman a Reportes) <--- NUEVO
+    // 8. RUTAS PARA REPORTES (Llaman a Reportes)
     $routes->get('reportes', 'Reportes::index');
     $routes->get('reporte/(:segment)', 'Reportes::generarPdf/$1');
 });

@@ -18,11 +18,9 @@ class CarritoController extends BaseController
 
     public function __construct()
     {
-        // FIX: Se elimina el argumento 'true' de la llamada al servicio de sesión. 
-        // Esto resuelve el TypeError que causaba el error 500.
+        // El servicio de sesión se inicializa correctamente.
         $this->session = \Config\Services::session();
         
-        // El servicio de sesión ahora se inicializa correctamente.
         if (empty($this->session)) {
             log_message('error', 'Sesión no pudo inicializarse en constructor');
         }
@@ -52,7 +50,8 @@ class CarritoController extends BaseController
     }
 
     /**
-     * Calcula totales del carrito (subtotal, descuento, envío).
+     * Calcula totales del carrito (subtotal, descuento, envío) aplicando las reglas de membresía.
+     * ESTA FUNCIÓN HA SIDO REVISADA Y AJUSTADA PARA APLICAR LAS REGLAS DE MEMBRESÍA.
      * @return array Totales calculados
      */
     private function calcularTotales()
@@ -70,33 +69,32 @@ class CarritoController extends BaseController
 
             if ($idUsuario) {
                 $usuario = $this->usuarioModel->select('id_membresia')->find($idUsuario);
+                
+                // Aplicar reglas de membresía si existe un ID de membresía
                 if ($usuario && !empty($usuario['id_membresia'])) {
-                    // Fallback si getReglasMembresia no existe
-                    try {
-                        // Es crucial que TipoMembresiaModel tenga el método getReglasMembresia($id)
-                        $reglas = $this->membresiaModel->getReglasMembresia((int)$usuario['id_membresia']);
-                    } catch (\Throwable $e) {
-                        // Usamos \Throwable para capturar errores como "Method not found"
-                        log_message('warning', 'Error al llamar a getReglasMembresia, usando defaults: ' . $e->getMessage());
-                        $reglas = ['descuento_porcentaje' => 0.00, 'envio_gratis_monto_minimo' => 0.00, 'costo_envio_fijo' => 0.00];
-                    }
+                    
+                    // Se asume que TipoMembresiaModel tiene el método getReglasMembresia($id)
+                    // Eliminamos el try-catch anidado, asumiendo que el método existe.
+                    $reglas = $this->membresiaModel->getReglasMembresia((int)$usuario['id_membresia']);
 
                     if ($reglas && is_array($reglas)) {
                         $porcentajeDescuento = (float)($reglas['descuento_porcentaje'] ?? 0.00);
                         $envioGratisMontoMinimo = (float)($reglas['envio_gratis_monto_minimo'] ?? 0.00);
                         $costoEnvioFijo = (float)($reglas['costo_envio_fijo'] ?? 0.00);
 
+                        // 1. Cálculo del descuento
                         $descuento = $subtotal * $porcentajeDescuento;
+                        
+                        // 2. Cálculo del costo de envío
                         if ($envioGratisMontoMinimo == 0.00 || $subtotal >= $envioGratisMontoMinimo) {
-                            $costoEnvio = 0.00;
+                            $costoEnvio = 0.00; // Envío gratis absoluto o por monto mínimo alcanzado
                         } else {
-                            // Aplicar costo fijo si no alcanza el mínimo para envío gratis
-                            $costoEnvio = $costoEnvioFijo;
+                            $costoEnvio = $costoEnvioFijo; // Aplicar costo fijo si no alcanza el mínimo
                         }
                     }
                 }
             }
-
+            // Asegurar que el descuento no sea mayor que el subtotal
             $descuento = min($descuento, $subtotal);
             $totalFinal = $subtotal - $descuento + $costoEnvio;
 
@@ -330,11 +328,12 @@ class CarritoController extends BaseController
 
 
             $totales = $this->calcularTotales();
-
+            
             // Guardar en DB: Pedido
             $pedidoData = [
                 'id_user' => $idUser,
-                'monto_total' => $totales['total_final'],
+                // El monto total ya incluye el descuento y el costo de envío aplicados en calcularTotales()
+                'monto_total' => $totales['total_final'], 
                 'estado_pedido' => 'Pendiente',
                 'fecha_pedido' => date('Y-m-d')
             ];
@@ -356,7 +355,7 @@ class CarritoController extends BaseController
                     'id_pedido' => $idPedido,
                     'id_disco' => $item['id'],
                     'cantidad' => $item['qty'],
-                    'sub_total' => $item['subtotal']
+                    'sub_total' => $item['subtotal'] // Nota: El subtotal del ítem individual no tiene el descuento aplicado aún, pero la estructura es válida.
                 ];
                 $detalleModel->insert($detalleData);
 
@@ -367,7 +366,6 @@ class CarritoController extends BaseController
                     $this->discoModel->update($item['id'], ['stock' => $newStock]);
                     log_message('debug', 'Stock actualizado para disco ' . $item['id'] . ': ' . $newStock);
                 }
-                // Nota: Ya verificamos el stock, si llegamos aquí, se puede asumir que la actualización es segura.
             }
 
             // Vaciar carrito
@@ -375,7 +373,7 @@ class CarritoController extends BaseController
 
             log_message('debug', 'Checkout completado para usuario ' . $idUser . '. Pedido ID: ' . $idPedido);
 
-            // CÓDIGO MODIFICADO: Mensaje de éxito más específico.
+            // Mensaje de éxito más específico.
             return $this->response->setJSON([
                 'status' => 'success',
                 'message' => '¡Compra finalizada con éxito! Puedes ver el estado y detalle de tu pedido en la sección "Compras realizadas".',
