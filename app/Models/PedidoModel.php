@@ -28,15 +28,15 @@ class PedidoModel extends Model
     
     /**
      * Obtiene todos los pedidos y los une con usuario y membresía.
-     * Incorpora el FILTRO por ID de membresía.
+     * Incorpora el FILTRO por ID de membresía y ESTADO de pedido.
      * @param int|null $membresiaId ID de la membresía para filtrar, o null para todos.
+     * @param string|null $estadoFilter Estado del pedido para filtrar, o null para todos.
      * @return array
      */
-    public function getPedidosConUsuario($membresiaId = null)
+    public function getPedidosConUsuario($membresiaId = null, $estadoFilter = null)
     {
         $builder = $this->db->table('pedidos p')
-                            // ¡CAMBIO CLAVE AQUÍ!
-                            // Se cambiaron los alias a 'nombre' y 'apellido' para que coincida con la vista.
+                            // Se usan 'nombre' y 'apellido' para que coincida con la vista.
                             ->select('p.*, u.nombre, u.apellido, tm.nombre AS nom_membresia, tm.id AS id_membresia')
                             ->join('usuarios u', 'u.id = p.id_user')
                             // El join es a u.id_membresia, pero la membresía aplica al usuario.
@@ -46,6 +46,11 @@ class PedidoModel extends Model
         // Lógica de Filtro por Membresía
         if (!empty($membresiaId)) {
             $builder->where('tm.id', $membresiaId);
+        }
+        
+        // NUEVA LÓGICA DE FILTRO POR ESTADO
+        if (!empty($estadoFilter)) {
+            $builder->where('p.estado_pedido', $estadoFilter);
         }
 
         return $builder->get()->getResultArray();

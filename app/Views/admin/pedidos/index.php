@@ -26,7 +26,7 @@
             </div>
         <?php endif; ?>
 
-        <div class="form-actions" style="margin-bottom: 20px; display: flex; justify-content: flex-start; align-items: center; gap: 10px;">
+        <div class="form-actions" style="margin-bottom: 20px; display: flex; justify-content: flex-start; align-items: center; gap: 20px;">
             <form method="get" action="<?= base_url('admin/pedidos') ?>" style="display: flex; gap: 10px; align-items: center;">
                 
                 <label for="membresia_id" style="color: #bbb; margin-right: 10px; font-size: 14px;">Filtrar por Membresía:</label>
@@ -44,13 +44,10 @@
                         color: #FFFFFF; 
                         font-size: 14px;
                         cursor: pointer;
-                        
                         -webkit-appearance: none; 
                         -moz-appearance: none; 
                         appearance: none; 
-                        
                         background-image: url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxNiIgaGVpZ2h0PSIxNiIgdmlld0JveD0iMCAwIDI0IDI0IiBmaWxsPSJub25lIiBzdHJva2U9IiNGRkZGRkYiIHN0cm9rZS13aWR0aD0iMiIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIiBzdHJva2UtbGluZWpvaW49InJvdW5kIiBjbGFzcz0iaWNvbiI+PHBvbHlsaW5lIHBvaW50cz0iNiA5IDEyIDE1IDE4IDkiPjwvcG9seWxpbmU+PC9zdmc+');
-                        
                         background-repeat: no-repeat;
                         background-position: right 8px center;
                         padding-right: 30px; 
@@ -65,9 +62,43 @@
                         </option>
                     <?php endforeach; ?>
                 </select>
+
+                <label for="estado_pedido" style="color: #bbb; margin-left: 20px; margin-right: 10px; font-size: 14px;">Filtrar por Estado:</label>
+                
+                <select 
+                    name="estado_pedido" 
+                    id="estado_pedido" 
+                    class="form-control" 
+                    onchange="this.form.submit()" 
+                    style="
+                        padding: 8px 12px;
+                        border-radius: 6px; 
+                        border: 1px solid #444; 
+                        background-color: #333; 
+                        color: #FFFFFF; 
+                        font-size: 14px;
+                        cursor: pointer;
+                        -webkit-appearance: none; 
+                        -moz-appearance: none; 
+                        appearance: none; 
+                        background-image: url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxNiIgaGVpZ2h0PSIxNiIgdmlld0JveD0iMCAwIDI0IDI0IiBmaWxsPSJub25lIiBzdHJva2U9IiNGRkZGRkYiIHN0cm9rZS13aWR0aD0iMiIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIiBzdHJva2UtbGluZWpvaW49InJvdW5kIiBjbGFzcz0iaWNvbiI+PHBvbHlsaW5lIHBvaW50cz0iNiA5IDEyIDE1IDE4IDkiPjwvcG9seWxpbmU+PC9zdmc+');
+                        background-repeat: no-repeat;
+                        background-position: right 8px center;
+                        padding-right: 30px; 
+                    "
+                >
+                    <option value="" style="background-color: #333; color: #FFFFFF;" <?= empty($selected_estado) ? 'selected' : '' ?>>Todos los Estados</option>
+                    <?php foreach ($estados_validos as $estado): ?>
+                        <option value="<?= $estado ?>"
+                            style="background-color: #333; color: #FFFFFF;"
+                            <?= $selected_estado === $estado ? 'selected' : '' ?>>
+                            <?= esc($estado) ?>
+                        </option>
+                    <?php endforeach; ?>
+                </select>
+
             </form>
         </div>
-
         <?php if (!empty($pedidos) && is_array($pedidos)): ?>
         <div class="table-container">
             <table>
@@ -84,10 +115,10 @@
                 </thead>
                 <tbody>
                     <?php foreach ($pedidos as $pedido): ?>
-                        <tr style="<?= $pedido['id_membresia'] == 3 ? 'background-color: #4A5568;' : '' ?>">
+                        <tr style="<?= ($pedido['id_membresia'] ?? 0) == 3 ? 'background-color: #4A5568;' : '' ?>">
                             <td><?= $pedido['id'] ?></td>
                             <td><?= esc($pedido['nombre'] . ' ' . $pedido['apellido']) ?></td>
-                            <td style="<?= $pedido['id_membresia'] == 3 ? 'font-weight: bold; color: #63B3ED;' : '' ?>">
+                            <td style="<?= ($pedido['id_membresia'] ?? 0) == 3 ? 'font-weight: bold; color: #63B3ED;' : '' ?>">
                                 <?= esc($pedido['nom_membresia']) ?>
                             </td>
                             <td><?= date('d/m/Y', strtotime($pedido['fecha_pedido'])) ?></td>
@@ -119,7 +150,7 @@
             </table>
         </div>
         <?php else: ?>
-            <p style="color: #A0AEC0;">No hay pedidos para mostrar.</p>
+            <p style="color: #A0AEC0;">No hay pedidos para mostrar con los filtros aplicados.</p>
         <?php endif; ?>
     </div>
 </div>

@@ -22,17 +22,25 @@ class PedidoController extends BaseController
     }
 
     /**
-     * Muestra todos los pedidos con opción de filtrar por membresía.
+     * Muestra todos los pedidos con opción de filtrar por membresía y estado.
      */
     public function index()
     {
         $membresia_id = $this->request->getGet('membresia_id');
+        // CAMBIO CLAVE: Capturar el filtro de estado de la URL.
+        $selected_estado = $this->request->getGet('estado_pedido');
 
+        // Definir los estados válidos disponibles para filtrado y el dropdown (debe coincidir con el modelo).
+        $estados_validos = ['Pendiente', 'Enviado', 'Entregado'];
+
+        // CAMBIO CLAVE: Pasar ambos filtros al método del modelo.
         $data = [
-            'pedidos' => $this->pedidoModel->getPedidosConUsuario($membresia_id),
+            'pedidos' => $this->pedidoModel->getPedidosConUsuario($membresia_id, $selected_estado),
             'membresias' => $this->membresiaModel->getAllMembresias(),
             'selected_membresia' => $membresia_id,
-            'estados_validos' => ['Pendiente', 'Enviado', 'Entregado'],
+            'estados_validos' => $estados_validos,
+            // Pasar el estado seleccionado a la vista.
+            'selected_estado' => $selected_estado, 
         ];
 
         return view('admin/pedidos/index', $data);
