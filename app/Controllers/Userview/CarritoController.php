@@ -11,28 +11,20 @@ use App\Models\DetallePedidoModel;
 
 class CarritoController extends BaseController
 {
-    protected $cart;
     protected $discoModel;
     protected $usuarioModel;
     protected $membresiaModel;
+    protected $session;
 
     public function __construct()
     {
-        // Inicializa sesiones explícitamente si no están activas
-        if (session_status() === PHP_SESSION_NONE) {
-            \Config\Services::session();
-        }
-
-        // Inicializa el carrito con fallback si falla
-        try {
-            $this->cart = \Config\Services::cart();
-            if ($this->cart === null) {
-                throw new \Exception('Cart service null');
-            }
-        } catch (\Exception $e) {
-            log_message('error', 'Error inicializando Cart: ' . $e->getMessage());
-            // Fallback: Inicializa manualmente si es necesario
-            $this->cart = new \CodeIgniter\Cart\Cart();
+        // FIX: Se elimina el argumento 'true' de la llamada al servicio de sesión. 
+        // Esto resuelve el TypeError que causaba el error 500.
+        $this->session = \Config\Services::session();
+        
+        // El servicio de sesión ahora se inicializa correctamente.
+        if (empty($this->session)) {
+            log_message('error', 'Sesión no pudo inicializarse en constructor');
         }
 
         $this->discoModel = new DiscoModel();
@@ -42,145 +34,211 @@ class CarritoController extends BaseController
     }
 
     /**
-     * Calcula el subtotal, el descuento por membresía y el costo de envío.
-     * Esta función está protegida contra valores NULL y errores de base de datos.
-     * @return array Array con los totales calculados.
+     * Obtiene el carrito de sesión (array simple).
+     * @return array Items del carrito
+     */
+    private function getCartItems()
+    {
+        return $this->session->get('cart_items') ?? [];
+    }
+
+    /**
+     * Guarda el carrito en sesión.
+     * @param array $items
+     */
+    private function setCartItems($items)
+    {
+        $this->session->set('cart_items', $items);
+    }
+
+    /**
+     * Calcula totales del carrito (subtotal, descuento, envío).
+     * @return array Totales calculados
      */
     private function calcularTotales()
     {
-        $subtotal = $this->cart->total();
-        $descuento = 0.00;
-        $costoEnvio = 0.00;
-        $idUsuario = session()->get('id_usuario');
+        try {
+            $items = $this->getCartItems();
+            $subtotal = 0;
+            foreach ($items as $item) {
+                $subtotal += $item['price'] * $item['qty'];
+            }
 
-        // Solo intentar aplicar beneficios si el usuario está logueado
-        if ($idUsuario) {
-            try {
-                // 1. Obtener la información del usuario
+            $descuento = 0.00;
+            $costoEnvio = 0.00;
+            $idUsuario = $this->session->get('id_usuario');
+
+            if ($idUsuario) {
                 $usuario = $this->usuarioModel->select('id_membresia')->find($idUsuario);
-
-                // 2. Verificar si el usuario y la membresía son válidos
                 if ($usuario && !empty($usuario['id_membresia'])) {
-                    
-                    // 3. Obtener las reglas de la membresía. Castear a int por seguridad.
-                    $reglas = $this->membresiaModel->getReglasMembresia((int)$usuario['id_membresia']); 
+                    // Fallback si getReglasMembresia no existe
+                    try {
+                        // Es crucial que TipoMembresiaModel tenga el método getReglasMembresia($id)
+                        $reglas = $this->membresiaModel->getReglasMembresia((int)$usuario['id_membresia']);
+                    } catch (\Throwable $e) {
+                        // Usamos \Throwable para capturar errores como "Method not found"
+                        log_message('warning', 'Error al llamar a getReglasMembresia, usando defaults: ' . $e->getMessage());
+                        $reglas = ['descuento_porcentaje' => 0.00, 'envio_gratis_monto_minimo' => 0.00, 'costo_envio_fijo' => 0.00];
+                    }
 
                     if ($reglas && is_array($reglas)) {
-                        // Asegurar que todos los valores son flotantes (float) y usar 0.00 si son NULL o no están.
                         $porcentajeDescuento = (float)($reglas['descuento_porcentaje'] ?? 0.00);
                         $envioGratisMontoMinimo = (float)($reglas['envio_gratis_monto_minimo'] ?? 0.00);
                         $costoEnvioFijo = (float)($reglas['costo_envio_fijo'] ?? 0.00);
 
-                        // --- Aplicar Descuento ---
                         $descuento = $subtotal * $porcentajeDescuento;
-
-                        // --- Aplicar Reglas de Envío ---
                         if ($envioGratisMontoMinimo == 0.00 || $subtotal >= $envioGratisMontoMinimo) {
-                            $costoEnvio = 0.00; // Envío gratis
+                            $costoEnvio = 0.00;
                         } else {
-                            $costoEnvio = $costoEnvioFijo; // Aplicar costo fijo
+                            // Aplicar costo fijo si no alcanza el mínimo para envío gratis
+                            $costoEnvio = $costoEnvioFijo;
                         }
-                    } 
+                    }
                 }
-            } catch (\Exception $e) {
-                // Captura CUALQUIER error crítico y lo registra
-                log_message('error', 'Fallo CRÍTICO en CarritoController::calcularTotales: ' . $e->getMessage());
-                $descuento = 0.00;
-                $costoEnvio = 0.00;
             }
+
+            $descuento = min($descuento, $subtotal);
+            $totalFinal = $subtotal - $descuento + $costoEnvio;
+
+            return [
+                'subtotal' => (float)$subtotal,
+                'descuento' => (float)$descuento,
+                'costo_envio' => (float)$costoEnvio,
+                'total_final' => (float)$totalFinal
+            ];
+        } catch (\Exception $e) {
+            log_message('error', 'Error en calcularTotales: ' . $e->getMessage());
+            return ['subtotal' => 0, 'descuento' => 0, 'costo_envio' => 0, 'total_final' => 0];
         }
-
-        // Asegurar que el descuento no exceda el subtotal
-        $descuento = min($descuento, $subtotal);
-        $totalFinal = $subtotal - $descuento + $costoEnvio;
-
-        return [
-            'subtotal' => (float)$subtotal,
-            'descuento' => (float)$descuento,
-            'costo_envio' => (float)$costoEnvio,
-            'total_final' => (float)$totalFinal
-        ];
     }
 
     /**
-     * Agrega un disco al carrito a través de AJAX.
-     * @return \CodeIgniter\HTTP\Response
+     * Agrega un disco al carrito.
      */
     public function agregar()
     {
         try {
-            // Check relajado para debug - verifica si es POST o AJAX, pero permite GET temporal
-            log_message('debug', 'Método recibido en agregar: ' . $this->request->getMethod() . ', isAJAX: ' . ($this->request->isAJAX() ? 'true' : 'false'));
+            log_message('debug', 'Iniciando agregar. Método: ' . $this->request->getMethod() . ', isAJAX: ' . ($this->request->isAJAX() ? 'true' : 'false'));
+            log_message('debug', 'Sesión logged_in: ' . ($this->session->get('logged_in') ? 'true' : 'false') . ', id_usuario: ' . $this->session->get('id_usuario'));
 
-            // Usa getPostGet para aceptar tanto POST como GET durante debug
-            $id_disco = $this->request->getPostGet('id_disco');
-            $qty = (int)($this->request->getPostGet('qty') ?? 1);
+            $id_disco = $this->request->getPost('id_disco') ?? $this->request->getGet('id_disco');
+            $qty = (int)($this->request->getPost('qty') ?? $this->request->getGet('qty') ?? 1);
 
-            log_message('debug', 'Datos recibidos en agregar: id_disco=' . $id_disco . ', qty=' . $qty);
+            log_message('debug', 'Datos: id_disco=' . $id_disco . ', qty=' . $qty);
 
             if (empty($id_disco) || $qty < 1) {
+                log_message('error', 'Validación falló: id_disco vacío o qty <1');
                 return $this->response->setJSON(['status' => 'error', 'message' => 'ID de disco inválido o cantidad menor a 1.']);
             }
 
             $disco = $this->discoModel->find($id_disco);
+            log_message('debug', 'Disco encontrado: ' . json_encode($disco));
 
             if (!$disco) {
                 return $this->response->setJSON(['status' => 'error', 'message' => 'Disco no encontrado en la base de datos.']);
             }
 
-            $data = [
-                'id'      => $disco['id'],
-                'qty'     => $qty,
-                'price'   => (float)$disco['precio_venta'],
-                'name'    => $disco['titulo'],
-                'options' => ['artista' => $disco['artista']]
-            ];
+            $items = $this->getCartItems();
+            
+            // Revisa si el disco ya existe en el carrito para no generar un nuevo rowid
+            $found = false;
+            foreach ($items as $rowid => $item) {
+                if ($item['id'] == $id_disco) {
+                    $items[$rowid]['qty'] += $qty;
+                    $items[$rowid]['subtotal'] = $items[$rowid]['price'] * $items[$rowid]['qty'];
+                    $found = true;
+                    break;
+                }
+            }
 
-            $this->cart->insert($data);
+            if (!$found) {
+                // Si es un nuevo disco, genera un rowid único
+                $rowid = md5($disco['id'] . time() . rand(1, 1000));
+                
+                $items[$rowid] = [
+                    'rowid' => $rowid,
+                    'id' => $disco['id'],
+                    'qty' => $qty,
+                    'price' => (float)$disco['precio_venta'],
+                    'name' => $disco['titulo'],
+                    'options' => ['artista' => $disco['artista']],
+                    'subtotal' => (float)$disco['precio_venta'] * $qty
+                ];
+            }
+
+
+            $this->setCartItems($items);
+
+            log_message('debug', 'Item agregado. Total items: ' . count($items));
 
             $totales = $this->calcularTotales();
 
             return $this->response->setJSON([
                 'status' => 'success',
                 'message' => 'Producto agregado al carrito.',
-                'total_items' => $this->cart->totalItems(),
+                'total_items' => array_sum(array_column($items, 'qty')),
                 'total_final' => number_format($totales['total_final'], 2),
             ]);
         } catch (\Exception $e) {
-            log_message('error', 'Fallo al agregar producto al carrito (ENDPOINT): ' . $e->getMessage());
-            return $this->response->setJSON(['status' => 'error', 'message' => 'Ocurrió un error interno al procesar la solicitud de agregar.']);
+            log_message('error', 'Excepción en agregar: ' . $e->getMessage() . ' en línea ' . $e->getLine());
+            return $this->response->setJSON(['status' => 'error', 'message' => 'Ocurrió un error interno al procesar la solicitud de agregar: ' . $e->getMessage()]);
         }
     }
 
     /**
-     * Actualiza la cantidad de un item en el carrito.
-     * @return \CodeIgniter\HTTP\Response
+     * Obtiene los contenidos y totales del carrito.
+     */
+    public function obtener()
+    {
+        try {
+            $items = $this->getCartItems();
+            $totales = $this->calcularTotales();
+
+            log_message('debug', 'Items obtenidos: ' . count($items));
+
+            return $this->response->setJSON([
+                'status' => 'success',
+                'items' => array_values($items),
+                'totales' => $totales
+            ]);
+        } catch (\Exception $e) {
+            log_message('error', 'Excepción en obtener: ' . $e->getMessage() . ' en línea ' . $e->getLine());
+            return $this->response->setJSON(['status' => 'error', 'message' => 'No se pudo cargar el carrito. Intente de nuevo: ' . $e->getMessage()]);
+        }
+    }
+
+    /**
+     * Actualiza la cantidad de un item.
      */
     public function actualizar()
     {
         try {
             $rowid = $this->request->getPost('rowid');
-            $qty = $this->request->getPost('qty');
+            $qty = (int)($this->request->getPost('qty') ?? 0);
 
-            if (!$rowid || !is_numeric($qty) || $qty < 0) {
-                return $this->response->setJSON(['status' => 'error', 'message' => 'Datos de actualización inválidos.']);
+            $items = $this->getCartItems();
+            if (isset($items[$rowid])) {
+                $items[$rowid]['qty'] = $qty;
+                $items[$rowid]['subtotal'] = $items[$rowid]['price'] * $qty;
+                if ($qty == 0) {
+                    unset($items[$rowid]);
+                }
+                $this->setCartItems($items);
             }
-            
-            $data = [
-                'rowid' => $rowid,
-                'qty'   => (int)$qty
-            ];
 
-            $this->cart->update($data);
             $totales = $this->calcularTotales();
+            $message = ($qty == 0) ? 'Producto eliminado del carrito.' : 'Cantidad actualizada.';
+            
+            // Calcular el nuevo subtotal del ítem actualizado
+            $newSubtotalItem = isset($items[$rowid]) ? $items[$rowid]['subtotal'] : 0;
+            $totalItems = empty($items) ? 0 : array_sum(array_column($items, 'qty'));
 
-            $message = ((int)$qty == 0) ? 'Producto eliminado del carrito.' : 'Cantidad actualizada.';
-            $item_data = $this->cart->getItem($rowid);
 
             return $this->response->setJSON([
                 'status' => 'success',
                 'message' => $message,
-                'new_subtotal_item' => number_format($item_data['subtotal'] ?? 0, 2), 
+                'new_subtotal_item' => number_format($newSubtotalItem, 2),
+                'total_items' => $totalItems, // Agregado para actualizar el contador general
                 'totales' => $totales
             ]);
         } catch (\Exception $e) {
@@ -190,39 +248,12 @@ class CarritoController extends BaseController
     }
 
     /**
-     * Obtiene los contenidos y totales del carrito.
-     * @return \CodeIgniter\HTTP\Response
-     */
-    public function obtener()
-    {
-        try {
-            $items = $this->cart->contents();
-            $totales = $this->calcularTotales();
-
-            return $this->response->setJSON([
-                'status' => 'success',
-                'items' => array_values($items),
-                'totales' => $totales
-            ]);
-        } catch (\Exception $e) {
-            // Manejador de errores para el endpoint 'obtener'
-            log_message('error', 'Fallo al obtener contenido del carrito: ' . $e->getMessage());
-            return $this->response->setJSON(['status' => 'error', 'message' => 'No se pudo cargar el carrito. Intente de nuevo.']);
-        }
-    }
-
-    /**
      * Vacía todo el carrito.
-     * @return \CodeIgniter\HTTP\Response
      */
     public function vaciar()
     {
         try {
-            if (!$this->request->isAJAX()) {
-                return redirect()->back()->with('success', 'El carrito ha sido vaciado.');
-            }
-
-            $this->cart->destroy();
+            $this->setCartItems([]);
             $totales = $this->calcularTotales();
 
             return $this->response->setJSON([
@@ -232,14 +263,13 @@ class CarritoController extends BaseController
                 'total_final' => number_format($totales['total_final'], 2),
             ]);
         } catch (\Exception $e) {
-             log_message('error', 'Fallo al vaciar carrito: ' . $e->getMessage());
-             return $this->response->setJSON(['status' => 'error', 'message' => 'Ocurrió un error al vaciar el carrito.']);
+            log_message('error', 'Fallo al vaciar carrito: ' . $e->getMessage());
+            return $this->response->setJSON(['status' => 'error', 'message' => 'Ocurrió un error al vaciar el carrito.']);
         }
     }
 
     /**
-     * Elimina un item del carrito a través de AJAX.
-     * @return \CodeIgniter\HTTP\Response
+     * Elimina un item del carrito.
      */
     public function eliminar()
     {
@@ -248,12 +278,19 @@ class CarritoController extends BaseController
             if (!$rowid) {
                 return $this->response->setJSON(['status' => 'error', 'message' => 'Rowid inválido.']);
             }
-            $this->cart->remove($rowid);
+
+            $items = $this->getCartItems();
+            unset($items[$rowid]);
+            $this->setCartItems($items);
+
             $totales = $this->calcularTotales();
+            $totalItems = empty($items) ? 0 : array_sum(array_column($items, 'qty'));
+
+
             return $this->response->setJSON([
                 'status' => 'success',
                 'message' => 'Producto eliminado.',
-                'total_items' => $this->cart->totalItems(),
+                'total_items' => $totalItems,
                 'total_final' => number_format($totales['total_final'], 2),
             ]);
         } catch (\Exception $e) {
@@ -263,8 +300,7 @@ class CarritoController extends BaseController
     }
 
     /**
-     * Procesa la finalización de la compra.
-     * @return \CodeIgniter\HTTP\Response
+     * Procesa la finalización de la compra (guarda en DB).
      */
     public function checkout()
     {
@@ -273,14 +309,29 @@ class CarritoController extends BaseController
                 return redirect()->back()->with('error', 'Acceso denegado.');
             }
 
-            if ($this->cart->totalItems() == 0) {
+            $items = $this->getCartItems();
+            if (empty($items)) {
                 return $this->response->setJSON(['status' => 'error', 'message' => 'El carrito está vacío.']);
             }
 
+            // Verificar si el usuario está logueado
+            $idUser = $this->session->get('id_usuario');
+            if (!$idUser) {
+                return $this->response->setJSON(['status' => 'error', 'message' => 'Debe iniciar sesión para completar la compra.']);
+            }
+            
+            // Validar stock antes de guardar
+            foreach ($items as $item) {
+                $disco = $this->discoModel->find($item['id']);
+                if (!$disco || $disco['stock'] < $item['qty']) {
+                    return $this->response->setJSON(['status' => 'error', 'message' => 'Stock insuficiente para el disco: ' . $item['name']]);
+                }
+            }
+
+
             $totales = $this->calcularTotales();
 
-            // Lógica de guardar el pedido en la DB
-            $idUser = session()->get('id_usuario');
+            // Guardar en DB: Pedido
             $pedidoData = [
                 'id_user' => $idUser,
                 'monto_total' => $totales['total_final'],
@@ -289,29 +340,50 @@ class CarritoController extends BaseController
             ];
             $pedidoModel = new PedidoModel();
             $idPedido = $pedidoModel->insert($pedidoData);
+            
+            if (!$idPedido) {
+                 log_message('error', 'Fallo al insertar pedido en DB para usuario ' . $idUser);
+                 return $this->response->setJSON(['status' => 'error', 'message' => 'Error al crear el pedido.']);
+            }
+            
+            log_message('debug', 'Pedido creado: ID ' . $idPedido);
 
-            foreach ($this->cart->contents() as $item) {
+
+            // Guardar detalles y actualizar stock
+            $detalleModel = new DetallePedidoModel();
+            foreach ($items as $item) {
                 $detalleData = [
                     'id_pedido' => $idPedido,
                     'id_disco' => $item['id'],
                     'cantidad' => $item['qty'],
                     'sub_total' => $item['subtotal']
                 ];
-                $detalleModel = new DetallePedidoModel();
                 $detalleModel->insert($detalleData);
+
+                // Actualizar stock en discos
+                $disco = $this->discoModel->find($item['id']);
+                if ($disco && $disco['stock'] >= $item['qty']) {
+                    $newStock = $disco['stock'] - $item['qty'];
+                    $this->discoModel->update($item['id'], ['stock' => $newStock]);
+                    log_message('debug', 'Stock actualizado para disco ' . $item['id'] . ': ' . $newStock);
+                }
+                // Nota: Ya verificamos el stock, si llegamos aquí, se puede asumir que la actualización es segura.
             }
 
-            // Vaciar el carrito después de "finalizar" la compra
-            $this->cart->destroy();
+            // Vaciar carrito
+            $this->setCartItems([]);
+
+            log_message('debug', 'Checkout completado para usuario ' . $idUser . '. Pedido ID: ' . $idPedido);
 
             return $this->response->setJSON([
                 'status' => 'success',
-                'message' => 'Compra finalizada con éxito. ¡Gracias!',
-                'resumen' => $totales
+                'message' => 'Compra finalizada con éxito. Tu número de pedido es: ' . $idPedido,
+                'resumen' => $totales,
+                'id_pedido' => $idPedido
             ]);
         } catch (\Exception $e) {
-             log_message('error', 'Fallo al finalizar la compra: ' . $e->getMessage());
-             return $this->response->setJSON(['status' => 'error', 'message' => 'Ocurrió un error al procesar el pago.']);
+            log_message('error', 'Fallo al finalizar la compra: ' . $e->getMessage() . ' en línea ' . $e->getLine());
+            return $this->response->setJSON(['status' => 'error', 'message' => 'Ocurrió un error al procesar el pago: ' . $e->getMessage()]);
         }
     }
 }

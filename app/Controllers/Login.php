@@ -40,27 +40,24 @@ class Login extends BaseController
         $passwordHash = md5($password); 
 
         // 2. Buscar usuario
-        // Nota: Asegúrate de que tu UsuarioModel tiene definidos los campos
-        // 'nombre', 'apellido', 'usuario', 'pass' y 'rol' como $allowedFields.
         $usuario = $usuarioModel->where('usuario', $username)
-                                ->where('pass', $passwordHash)
-                                ->first();
+                                 ->where('pass', $passwordHash)
+                                 ->first();
 
         if ($usuario) {
             
             // 3. Crear el Nombre Completo a partir de los datos de la BD
-            // Usamos operadores null coalescing (?? '') para seguridad.
             $nombreCompleto = trim(($usuario['nombre'] ?? '') . ' ' . ($usuario['apellido'] ?? ''));
             
-            // Fallback: Si el nombre completo queda vacío (por datos faltantes), usar el username
             if (empty($nombreCompleto)) {
                 $nombreCompleto = $usuario['usuario'];
             }
             
             // 4. Guardar datos en sesión
-            // 🚨 CAMBIO CLAVE: Agregamos 'nombre_completo' a la sesión 🚨
+            // 🚨 CAMBIO CLAVE: Se añade 'id_usuario' para que CarritoController lo reconozca.
             $session->set([
-                'id'                => $usuario['id'],
+                'id'                => $usuario['id'], // Mantenemos esta clave
+                'id_usuario'        => $usuario['id'], // ¡ESTA ES LA CLAVE ESPERADA POR EL CARRITO!
                 'usuario'           => $usuario['usuario'],
                 'rol'               => $usuario['rol'],
                 'logged_in'         => true,

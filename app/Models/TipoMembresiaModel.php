@@ -34,16 +34,16 @@ class TipoMembresiaModel extends Model
     }
 
     /**
-     * Obtiene los detalles completos de una membresía, incluyendo las reglas de compra.
-     * @param int $idMembresia ID de la membresía.
-     * @return array|null
+     * Obtiene las reglas de descuento y envío necesarias para el carrito.
+     * * @param int $idMembresia ID de la membresía.
+     * @return array|null Solo los campos de reglas, o null si no se encuentra.
      */
     public function getReglasMembresia(int $idMembresia): ?array
     {
-        // Se asegura que el método find() devuelva el resultado
-        $reglas = $this->find($idMembresia);
+        // 🚨 Refinamiento clave: Solo selecciona los campos que el CarritoController necesita.
+        $reglas = $this->select('descuento_porcentaje, envio_gratis_monto_minimo, costo_envio_fijo')
+                       ->find($idMembresia);
         
-        // Si no encuentra el registro, devuelve null, como espera la firma de la función.
         if ($reglas === null || $reglas === false) {
             log_message('debug', "Membresía ID: $idMembresia no encontrada para calcular reglas.");
             return null;

@@ -47,7 +47,7 @@
     const csrf_token_name = '<?= csrf_token() ?>';
     const csrf_token_hash = '<?= csrf_hash() ?>';
 
-    // Fuerza header AJAX global para que isAJAX() detecte correctamente
+    // Fuerza header AJAX global
     $.ajaxSetup({
         headers: {
             'X-Requested-With': 'XMLHttpRequest'
@@ -157,7 +157,7 @@
     function addToCarrito(discoId, cantidad) {
         $.ajax({
             url: CART_BASE_URL + '/agregar',
-            type: 'POST',  // Fuerza 'type' para compatibilidad
+            type: 'POST',
             data: { id_disco: discoId, qty: cantidad, [csrf_token_name]: csrf_token_hash },
             dataType: 'json',
             success: function(response) {
@@ -170,7 +170,7 @@
             },
             error: function(xhr, status, error) {
                 console.error("Error al agregar al carrito. Código:", xhr.status, "Mensaje:", xhr.responseText);
-                swal("Error", "Ocurrió un error de conexión al agregar el disco. Verifique la consola (F12 > Network). Código: " + xhr.status, "error");
+                swal("Error", "Ocurrió un error de conexión al agregar el disco. Código: " + xhr.status, "error");
             }
         });
     }
@@ -183,7 +183,6 @@
             dataType: 'json',
             success: function(response) {
                 if (response.status === 'success') {
-                    updateCarritoCount(response.total_items);
                     updateCarritoDisplay();
                 } else {
                     swal("Error", response.message, "error");
@@ -204,7 +203,6 @@
             dataType: 'json',
             success: function(response) {
                 if (response.status === 'success') {
-                    updateCarritoCount(response.total_items);
                     updateCarritoDisplay();
                 } else {
                     swal("Error", response.message, "error");
@@ -219,12 +217,12 @@
             type: 'GET',
             dataType: 'json',
             success: function(response) {
-                if (response.status === 'success' && response.items) {
-                    let itemsArray = response.items;
+                if (response.status === 'success') {
+                    let itemsArray = response.items || [];
                     let totales = response.totales || { subtotal: 0, descuento: 0, costo_envio: 0, total_final: 0 };
 
                     renderCarritoModal(itemsArray, totales); 
-                    updateCarritoCount(itemsArray.reduce((sum, item) => sum + item.qty, 0));
+                    updateCarritoCount(itemsArray.reduce((sum, item) => sum + (item.qty || 0), 0));
                 } else {
                     renderCarritoModal([], { subtotal: 0, descuento: 0, costo_envio: 0, total_final: 0 });
                     updateCarritoCount(0);
@@ -256,7 +254,7 @@
         items.forEach(function(item) {
             html += `
                 <div class="carrito-item-grid">
-                    <div class="carrito-item-info"><strong>${item.name}</strong></div>
+                    <div class="carrito-item-info"><strong>${item.name}</strong> - ${item.options.artista}</div>
                     <div style="text-align: right;">Q ${formatQuetzal(item.price)}</div>
                     <div style="text-align: center;">
                         <input type="number" 
@@ -302,7 +300,7 @@
                     dataType: 'json',
                     success: function(response) {
                         if (response.status === 'success') {
-                            swal("¡Éxito!", "Tu compra se realizó con éxito.", "success");
+                            swal("¡Éxito!", "Tu compra se realizó con éxito. Ve a admin para ver el pedido.", "success");
                             updateCarritoDisplay();
                         } else {
                             swal("Error al comprar", response.message, "error");
@@ -341,4 +339,4 @@
     }
 </script>
 
-<?= $this->endSection() ?> 
+<?= $this->endSection() ?>
