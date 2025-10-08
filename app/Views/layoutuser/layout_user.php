@@ -23,6 +23,46 @@
             display: flex;
             min-height: 100vh;
         }
+
+        /* -------------------------------------------------------- */
+        /* >>>>>>>>>>> ESTILOS GENERALES DEL SCROLLBAR DE LA PÁGINA <<<<<<<<<<< */
+        /* Esto forzará el estilo en el scrollbar principal de la ventana (el que se ve al borde) */
+        
+        /* Contenedor completo de la barra */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+            background: #1A1625; /* Fondo del área de scrollbar */
+        }
+        
+        /* La "perilla" o el thumb que se mueve */
+        ::-webkit-scrollbar-thumb {
+            background-color: #6D28D9; /* Morado, a juego con el tema */
+            border-radius: 4px; 
+            border: 2px solid #1A1625; /* Crea un pequeño margen que coincide con el fondo */
+        }
+        
+        /* Hover sobre la "perilla" */
+        ::-webkit-scrollbar-thumb:hover {
+            background-color: #5b21b6; 
+        }
+        /* >>>>>>>>>>> FIN ESTILOS GENERALES DEL SCROLLBAR <<<<<<<<<<< */
+        /* -------------------------------------------------------- */
+
+
+        /* >>>>>>>>>>> CORRECCIÓN SCROLLBAR: REGLAS CLAVE PARA EL MODAL <<<<<<<<<<< */
+        /* 1. Oculta el scrollbar del body entero cuando el modal está activo */
+        body.modal-open {
+            overflow: hidden; 
+        }
+        
+        /* 2. Oculta el scrollbar del wrapper principal de contenido, SOBREESCRIBIENDO CUALQUIER OTRA REGLA */
+        /* NOTA: Aunque esta regla intenta ocultarlo con !important, el estilo de arriba es el fallback estético. */
+        body.modal-open .main-content-wrapper {
+            overflow-y: hidden !important; 
+        }
+        /* >>>>>>>>>>> FIN CORRECCIÓN SCROLLBAR <<<<<<<<<<< */
+        
         .dashboard-container {
             display: flex;
             width: 100%;
@@ -106,10 +146,11 @@
         .main-content-wrapper {
             flex-grow: 1;
             padding: 40px;
-            overflow-y: auto; 
+            overflow-y: auto; /* Base: Permite scroll */
         }
         
-        /* >>>>>>>>>>> ESTILOS DE LA BARRA DE DESPLAZAMIENTO (SCROLLBAR) <<<<<<<<<<< */
+        /* >>>>>>>>>>> ESTILOS DE LA BARRA DE DESPLAZAMIENTO (SCROLLBAR) DEL WRAPPER <<<<<<<<<<< */
+        /* ESTO SE SOBRESCRIBE POR LA REGLA GLOBAL DE ARRIBA, PERO SE MANTIENE POR BUENA PRÁCTICA */
         .main-content-wrapper::-webkit-scrollbar {
             width: 8px;
             height: 8px;
@@ -244,6 +285,7 @@
         }
         tbody tr:last-child {
             border-bottom: none;
+            padding-bottom: 0;
         }
         td {
             font-size: 14px;
@@ -386,7 +428,12 @@
     $uri = service('uri');
     $segmento_actual = $uri->getSegment(2);
     
-    // NOTA: Asumo que la función is_active() está definida en un Helper que se carga automáticamente.
+    // Función de ejemplo si no tienes un Helper:
+    if (!function_exists('is_active')) {
+        function is_active($segment, $current_segment) {
+            return $segment === $current_segment ? 'active' : '';
+        }
+    }
     ?>
     
     <div class="dashboard-container">
@@ -394,7 +441,7 @@
             <div class="sidebar-header">
                 <svg width="32" height="32" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                     <path d="M12 3c-3.866 0-7 3.134-7 7v2h2v-2a5 5 0 0 1 10 0v2h2v-2c0-3.866-3.134-7-7-7z"
-                             fill="#8B5CF6"/>
+                                 fill="#8B5CF6"/>
                     <rect x="3" y="10" width="4" height="7" rx="1" ry="1" fill="#8B5CF6"/>
                     <rect x="17" y="10" width="4" height="7" rx="1" ry="1" fill="#8B5CF6"/>
                     <rect x="11" y="19" width="2" height="2" rx="0.5" ry="0.5" fill="#8B5CF6"/>

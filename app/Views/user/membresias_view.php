@@ -38,11 +38,11 @@
 
 <div id="membershipModal" class="modal" style="display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; overflow: auto; background-color: rgba(0,0,0,0.8); backdrop-filter: blur(5px);">
     <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content" style="background-color: #1A202C; margin: 15% auto; padding: 30px; border: 1px solid #4A5568; width: 80%; max-width: 500px; border-radius: 8px; color: #E2E8F0; overflow-y: hidden;">
+        <div class="modal-content">
             <span class="close-btn" style="color: #A0AEC0; float: right; font-size: 28px; font-weight: bold; cursor: pointer;">&times;</span>
             <h2 id="modalTitle" style="color: #6D28D9; border-bottom: 2px solid #2D3748; padding-bottom: 10px;">Detalle de Membresía</h2>
             
-            <div id="modalContent" style="margin-top: 20px;">
+            <div id="modalContent">
                 <p><strong>Precio:</strong> <span id="modalPrice"></span></p>
                 <p><strong>Duración:</strong> <span id="modalDuration"></span> mes(es)</p>
                 <h4 style="margin-top: 15px; color: #E2E8F0;">Beneficios:</h4>
@@ -70,16 +70,13 @@
     const currentMembershipMessage = document.getElementById('currentMembershipMessage');
     const purchaseMessage = document.getElementById('purchaseMessage');
 
-    // Función mejorada para bloquear el scroll de la página (soluciona la barra principal)
+    // 1. CORRECCIÓN SCROLLBAR: Añade/Quita la clase 'modal-open' al body.
     function blockPageScroll() {
-        document.documentElement.style.overflow = 'hidden'; // Bloquea en el elemento raíz <html>
-        document.body.style.overflow = 'hidden'; // Bloquea en el <body>
+        document.body.classList.add('modal-open'); 
     }
 
-    // Función para restaurar el scroll de la página
     function unblockPageScroll() {
-        document.documentElement.style.overflow = '';
-        document.body.style.overflow = '';
+        document.body.classList.remove('modal-open'); 
     }
 
     // Manejar el cierre del modal
@@ -98,7 +95,7 @@
     
     let selectedMembresiaId = null;
 
-    // 1. Mostrar detalles de la membresía (al hacer clic en cualquier tarjeta)
+    // Mostrar detalles de la membresía (al hacer clic en cualquier tarjeta)
     document.querySelectorAll('.membership-card button').forEach(button => {
         button.addEventListener('click', function(e) {
             e.stopPropagation(); 
@@ -125,7 +122,7 @@
         });
     });
 
-    // 2. Lógica de Compra (al hacer clic en el botón de confirmación)
+    // 2. CORRECCIÓN ERROR 405/CSRF: Lógica de Compra (al hacer clic en el botón de confirmación)
     confirmPurchaseBtn.addEventListener('click', function() {
         if (!selectedMembresiaId) return;
 
@@ -133,26 +130,40 @@
         purchaseMessage.textContent = 'Procesando la compra... por favor, espera.';
         confirmPurchaseBtn.disabled = true;
 
-        // Simular el envío del formulario de compra con AJAX
+        const csrfTokenName = '<?= csrf_token() ?>'; 
+        const csrfTokenHash = '<?= csrf_hash() ?>'; 
+
+        // Usamos URLSearchParams para construir el cuerpo de la solicitud POST correctamente
+        const requestBody = new URLSearchParams();
+        requestBody.append('id_membresia', selectedMembresiaId);
+        requestBody.append(csrfTokenName, csrfTokenHash); 
+
+        // Enviar la solicitud de compra con AJAX
         fetch('<?= url_to('user_comprar_membresia') ?>', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/x-www-form-urlencoded',
-                // Clave para CodeIgniter 4 con CSRF activo
                 'X-Requested-With': 'XMLHttpRequest'
             },
-            // Asegúrate de que los nombres de los campos coincidan con los de tu controlador
-            body: 'id_membresia=' + selectedMembresiaId + '&<?= csrf_token() ?>=' + '<?= csrf_hash() ?>'
+            body: requestBody.toString() // ¡El cuerpo está bien formado!
         })
-        .then(response => response.json())
+        
+        .then(response => {
+            // Manejo de errores HTTP (incluyendo el 405)
+            const clonedResponse = response.clone(); 
+            if (!response.ok) {
+                clonedResponse.text().then(text => console.error('Error de Servidor (no JSON):', text));
+                throw new Error(`Error HTTP: ${response.status}`);
+            }
+            return response.json();
+        })
         .then(data => {
             confirmPurchaseBtn.disabled = false;
             if (data.success) {
-                // Éxito: Mostrar mensaje y recargar para actualizar la vista
+                // Éxito
                 purchaseMessage.style.color = '#10B981';
                 purchaseMessage.textContent = data.message;
                 
-                // Antes de recargar, desbloquear el scroll
                 unblockPageScroll();
 
                 setTimeout(() => {
@@ -168,7 +179,7 @@
         .catch(error => {
             confirmPurchaseBtn.disabled = false;
             purchaseMessage.style.color = '#EF4444';
-            purchaseMessage.textContent = 'Error de conexión: No se pudo completar la compra.';
+            purchaseMessage.textContent = 'Error de conexión o de servidor. (Revisa la consola)';
             console.error('Error:', error);
         });
     });
@@ -176,6 +187,7 @@
 </script>
 
 <style>
+    /* Estilos existentes para las tarjetas de membresía */
     .membership-grid { display: flex; gap: 20px; margin-top: 20px; }
     .membership-card {
         flex: 1; background-color: #1A202C; border: 1px solid #4A5568; padding: 30px;
@@ -200,6 +212,40 @@
     #modalBenefits ul { list-style-type: disc; margin-left: 20px; padding-left: 0; }
     #modalBenefits li { margin-bottom: 5px; color: #A0AEC0; }
     #modalBenefits strong { color: #E2E8F0; }
+
+
+    /* >>>>>>>>>>> CORRECCIÓN SCROLLBAR: ESTILOS CLAVE DEL MODAL <<<<<<<<<<< */
+    .modal-content {
+        background-color: #1A202C; 
+        margin: 15% auto; /* Centrado vertical */
+        padding: 30px; 
+        border: 1px solid #4A5568; 
+        width: 80%; 
+        max-width: 500px; 
+        border-radius: 8px; 
+        color: #E2E8F0; 
+        /* Limita la altura del modal completo y previene el scroll externo */
+        max-height: 85vh; 
+        overflow-y: hidden; 
+    }
+    
+    #modalContent {
+        margin-top: 20px;
+        /* Limita la altura de la sección de beneficios y permite el scroll interno */
+        max-height: 350px; 
+        overflow-y: auto; 
+        padding-right: 15px; 
+    }
+    
+    /* Estilo del scrollbar interno del modal (opcional, para mejor apariencia) */
+    #modalContent::-webkit-scrollbar {
+        width: 6px;
+    }
+    #modalContent::-webkit-scrollbar-thumb {
+        background-color: #4A5568; 
+        border-radius: 3px;
+    }
+    /* >>>>>>>>>>> FIN CORRECCIÓN SCROLLBAR <<<<<<<<<<< */
 </style>
 
 <?= $this->endSection() ?>

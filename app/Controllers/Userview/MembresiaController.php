@@ -56,8 +56,11 @@ class MembresiaController extends BaseController
      */
     public function comprar()
     {
-        if ($this->request->getMethod() !== 'post') {
-            return $this->response->setStatusCode(405)->setJSON(['success' => false, 'message' => 'Método no permitido.']);
+        // ⭐ CORRECCIÓN CLAVE: Solo verificamos que sea AJAX. 
+        // La validación de que sea POST la maneja el archivo Routes.php.
+        if (!$this->request->isAJAX()) {
+             // Devolver 403 (Prohibido) si no es AJAX, para no confundir con el 405 (Método)
+             return $this->response->setStatusCode(403)->setJSON(['success' => false, 'message' => 'Acceso denegado. Se requiere solicitud AJAX.']);
         }
         
         $idUsuario = $this->session->get('id_usuario'); 
@@ -106,28 +109,22 @@ class MembresiaController extends BaseController
     
     /**
      * Función auxiliar para generar el array de beneficios en HTML,
-     * incluyendo todas las características principales de la tabla.
-     * Esta versión está actualizada con el texto fijo de envío y tiempos de entrega.
+     * simplificado para evitar desbordamiento del modal.
      */
     private function obtenerBeneficiosArray(array $membresias): array
     {
         $beneficios = [];
         foreach ($membresias as $m) {
             
-            // Determinar si es envío completamente gratis (costo fijo 0.00 y monto mínimo 0.00)
-            // Esto aplica a Estándar y Premium en la tabla de características.
-            $envioGratisAbsoluto = ($m['costo_envio_fijo'] == 0.00 && $m['envio_gratis_monto_minimo'] == 0.00);
-            
             $beneficiosHtml = "<ul>";
             
             // 1. Descuento
             $descuentoPorcentaje = number_format($m['descuento_porcentaje'] * 100);
             $beneficiosHtml .= "<li>Descuento: $descuentoPorcentaje% en toda la tienda.</li>";
-
-            // 2. Duración (Ya estaba, pero la incluimos para completitud)
-            $beneficiosHtml .= "<li>Duración de $m[duracion_meses] mes(es).</li>";
-
-            // 3. Envío y costo (Dinámico)
+            
+            // 2. Envío y costo (Dinámico)
+            $envioGratisAbsoluto = ($m['costo_envio_fijo'] == 0.00 && $m['envio_gratis_monto_minimo'] == 0.00);
+            
             if ($envioGratisAbsoluto) {
                 // Aplica a Estándar y Premium
                 $beneficiosHtml .= "<li>Envío gratuito en todos tus pedidos.</li>";
@@ -140,23 +137,16 @@ class MembresiaController extends BaseController
                 $beneficiosHtml .= "<li>Envío gratuito en compras mayores a Q $montoMinimo.</li>";
             }
             
-            // 4. Beneficios Específicos/Adicionales (Fijos según ID)
-            
-            // BÁSICA (ID 1)
-            if ($m['id'] == 1) {
-                 $beneficiosHtml .= "<li>Tiempo de entrega: hasta 1 mes.</li>";
+            // 3. Tiempos de Entrega y Extras
+            if ($m['id'] == 1) { // BÁSICA
+                $beneficiosHtml .= "<li>Tiempo de entrega: hasta 1 mes.</li>";
             } 
-            // ESTÁNDAR (ID 2)
-            elseif ($m['id'] == 2) {
-                 $beneficiosHtml .= "<li>Tiempo de entrega: entre 15 y 20 días.</li>";
+            elseif ($m['id'] == 2) { // ESTÁNDAR
+                $beneficiosHtml .= "<li>Tiempo de entrega: entre 15 y 20 días.</li>";
             } 
-            // PREMIUM (ID 3)
-            elseif ($m['id'] == 3) {
-                 // Nota: Incluimos el tiempo de entrega de Estándar/Premium si es necesario, pero 
-                 // nos enfocamos en los beneficios especiales de Premium según la tabla.
-                 $beneficiosHtml .= "<li>Tiempo de entrega: entre 15 y 20 días.</li>"; // Si aplica
-                 $beneficiosHtml .= "<li>Beneficios adicionales: Acceso prioritario a preventas.</li>";
-                 $beneficiosHtml .= "<li>Entrega prioritaria de productos.</li>";
+            elseif ($m['id'] == 3) { // PREMIUM
+                $beneficiosHtml .= "<li>Beneficios adicionales: Acceso prioritario a preventas.</li>";
+                $beneficiosHtml .= "<li>Entrega prioritaria de productos.</li>";
             }
 
             $beneficiosHtml .= "</ul>";
