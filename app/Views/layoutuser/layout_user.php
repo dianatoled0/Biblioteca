@@ -382,14 +382,11 @@
 <body>
     
     <?php
-    // LÓGICA DE ACTIVACIÓN DEL MENÚ (Ajustada para Usuario)
-    // ----------------------------------------------------
+    // LÓGICA DE ACTIVACIÓN DEL MENÚ
     $uri = service('uri');
-    // El segmento 2 es el controlador, ejemplo: /usuario/membresias -> 'membresias'
     $segmento_actual = $uri->getSegment(2);
     
-    // --- FUNCIÓN is_active() ELIMINADA DE AQUÍ y movida al Helper ---
-    // ----------------------------------------------------
+    // NOTA: Asumo que la función is_active() está definida en un Helper que se carga automáticamente.
     ?>
     
     <div class="dashboard-container">
@@ -418,7 +415,13 @@
                             <span>Membresías</span>
                         </a>
                     </li>
-                </ul>
+                    <li class="<?= is_active('compras', $segmento_actual) ?>">
+                        <a href="<?= base_url('usuario/compras') ?>">
+                            <svg class="icon" viewBox="0 0 24 24"><circle cx="9" cy="21" r="1"></circle><circle cx="20" cy="21" r="1"></circle><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"></path></svg>
+                            <span>Compras realizadas</span>
+                        </a>
+                    </li>
+                    </ul>
             </nav>
             <div class="sidebar-footer">
                 <a href="<?= base_url('logout') ?>"> 

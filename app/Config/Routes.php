@@ -33,6 +33,10 @@ $routes->group('usuario', ['filter' => 'auth', 'namespace' => 'App\Controllers\U
     $routes->get('/', 'UsuariosController::index'); 
     $routes->get('membresias', 'UsuariosController::membresias'); 
     
+    // NUEVAS RUTAS DE COMPRAS
+    $routes->get('compras', 'UsuariosController::compras'); // Muestra la lista de compras
+    $routes->get('compras/detalle/(:num)', 'UsuariosController::detalle_compra/$1'); // Muestra el detalle de una compra
+    
     // Rutas para el Carrito (CarritoController - Lógica AJAX)
     $routes->post('carrito/agregar', 'CarritoController::agregar');
     $routes->post('carrito/actualizar', 'CarritoController::actualizar');
