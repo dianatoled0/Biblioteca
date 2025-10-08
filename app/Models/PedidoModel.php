@@ -8,41 +8,44 @@ class PedidoModel extends Model
     protected $primaryKey = 'id';
     protected $returnType = 'array';
     
-    // CAMBIO IMPORTANTE: Agregada 'fecha_entrega'
+    // Dejamos solo los campos que existen en la tabla `pedidos`.
     protected $allowedFields = ['id_user', 'monto_total', 'estado_pedido', 'fecha_pedido', 'fecha_entrega'];
 
     protected $useTimestamps    = false;
     protected $useSoftDeletes   = false;
 
-    // Método para el admin (no se toca)
-    public function getPedidosConUsuario()
-    {
-        return $this->select('pedidos.*, usuarios.nombre, usuarios.apellido')
-                    ->join('usuarios', 'usuarios.id = pedidos.id_user')
-                    ->orderBy('pedidos.id', 'DESC')
-                    ->findAll();
-    }
-
-    // NUEVO MÉTODO: Obtiene todos los pedidos de un usuario
+    /**
+     * Obtiene todos los pedidos realizados por un usuario específico.
+     * ESTE ES EL MÉTODO QUE FALTABA
+     * @param int $userId El ID del usuario.
+     * @return array
+     */
     public function getPedidosByUserId($userId)
     {
         return $this->where('id_user', $userId)
-                    ->orderBy('fecha_pedido', 'DESC')
+                    ->orderBy('fecha_pedido', 'DESC') // Ordena por fecha más reciente
                     ->findAll();
     }
-
-    // NUEVO MÉTODO: Obtiene la cabecera del pedido y su detalle (discos comprados)
+    
+    /**
+     * Obtiene la cabecera del pedido, detalle y las reglas de membresía asociadas al usuario.
+     */
     public function getDetallePedido($idPedido)
     {
-        // 1. Obtener la cabecera del pedido
-        $pedido = $this->find($idPedido);
+        // 1. Obtener la cabecera del pedido, datos de usuario y datos de membresía
+        $pedidoData = $this->db->table('pedidos p')
+                           ->select('p.*, u.id_membresia, tm.nombre, tm.descuento_porcentaje, tm.costo_envio_fijo, tm.envio_gratis_monto_minimo')
+                           ->join('usuarios u', 'u.id = p.id_user')
+                           ->join('tipos_membresia tm', 'tm.id = u.id_membresia') // <- JOIN CLAVE
+                           ->where('p.id', $idPedido)
+                           ->get()
+                           ->getRowArray();
 
-        if (!$pedido) {
+        if (!$pedidoData) {
             return null;
         }
 
         // 2. Obtener los detalles (discos) del pedido
-        // Asegúrate de tener un DetallePedidoModel si quieres usarlo, sino usa el Query Builder:
         $detalle = $this->db->table('detalle_pedidos dp')
                            ->select('dp.cantidad, dp.sub_total, d.titulo, d.artista, d.precio_venta')
                            ->join('discos d', 'd.id = dp.id_disco')
@@ -51,7 +54,7 @@ class PedidoModel extends Model
                            ->getResultArray();
 
         return [
-            'pedido' => $pedido,
+            'pedido' => $pedidoData,
             'detalle' => $detalle
         ];
     }

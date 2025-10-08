@@ -300,7 +300,7 @@
                     dataType: 'json',
                     success: function(response) {
                         if (response.status === 'success') {
-                            swal("¡Éxito!", "Tu compra se realizó con éxito. Ve a admin para ver el pedido.", "success");
+                            swal("¡Éxito!", "Tu compra se realizó con éxito. Dirígete a la sección de 'Compras realizadas' para ver el detalle de tu pedido.", "success");
                             updateCarritoDisplay();
                         } else {
                             swal("Error al comprar", response.message, "error");

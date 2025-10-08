@@ -375,9 +375,10 @@ class CarritoController extends BaseController
 
             log_message('debug', 'Checkout completado para usuario ' . $idUser . '. Pedido ID: ' . $idPedido);
 
+            // CÓDIGO MODIFICADO: Mensaje de éxito más específico.
             return $this->response->setJSON([
                 'status' => 'success',
-                'message' => 'Compra finalizada con éxito. Tu número de pedido es: ' . $idPedido,
+                'message' => '¡Compra finalizada con éxito! Puedes ver el estado y detalle de tu pedido en la sección "Compras realizadas".',
                 'resumen' => $totales,
                 'id_pedido' => $idPedido
             ]);
