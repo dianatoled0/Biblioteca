@@ -86,7 +86,7 @@
                     <?php foreach ($pedidos as $pedido): ?>
                         <tr style="<?= $pedido['id_membresia'] == 3 ? 'background-color: #4A5568;' : '' ?>">
                             <td><?= $pedido['id'] ?></td>
-                            <td><?= esc($pedido['nom_cliente'] . ' ' . $pedido['ape_cliente']) ?></td>
+                            <td><?= esc($pedido['nombre'] . ' ' . $pedido['apellido']) ?></td>
                             <td style="<?= $pedido['id_membresia'] == 3 ? 'font-weight: bold; color: #63B3ED;' : '' ?>">
                                 <?= esc($pedido['nom_membresia']) ?>
                             </td>

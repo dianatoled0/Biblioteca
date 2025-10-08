@@ -1,17 +1,21 @@
-<?php namespace App\Controllers\Adminview;
+<?php
+
+namespace App\Controllers\Adminview;
 
 use App\Controllers\BaseController;
 use App\Models\CategoriaModel;
+use App\Models\NotificacionModel;
 
-class CategoriaController extends BaseController // ¡Clase corregida!
+class CategoriaController extends BaseController
 {
     protected $categoriaModel;
+    protected $notificacionModel;
 
     public function __construct()
     {
         $this->categoriaModel = new CategoriaModel();
-        // Asegúrate de cargar el helper de formularios para el form_open() en la vista
-        helper(['form', 'url']); 
+        $this->notificacionModel = new NotificacionModel();
+        helper(['form', 'url']);
     }
 
     /**
@@ -20,10 +24,10 @@ class CategoriaController extends BaseController // ¡Clase corregida!
     public function index()
     {
         $data = [
-            'categorias' => $this->categoriaModel->findAll() // Obtiene todas las categorías
+            'categorias' => $this->categoriaModel->findAll(),
         ];
-        
-        return view('admin/categorias/index', $data); // El path de la vista sigue siendo admin/categorias/index
+
+        return view('admin/categorias/index', $data);
     }
 
     /**
@@ -31,7 +35,6 @@ class CategoriaController extends BaseController // ¡Clase corregida!
      */
     public function crear()
     {
-        // La vista 'form.php' maneja el modo de creación si no se pasa $categoria
         return view('admin/categorias/form');
     }
 
@@ -40,22 +43,39 @@ class CategoriaController extends BaseController // ¡Clase corregida!
      */
     public function guardar()
     {
-        // 1. Validar los datos del formulario
-        if (! $this->validate($this->categoriaModel->validationRules))
-        {
-            // Si falla la validación, regresa al formulario con errores y datos antiguos
+        // Validar los datos del formulario
+        if (! $this->validate($this->categoriaModel->validationRules ?? [
+            'nom_categoria' => 'required|min_length[3]|max_length[50]'
+        ])) {
             return view('admin/categorias/form', [
-                'validation' => $this->validator
+                'validation' => $this->validator,
             ]);
         }
-        
-        // 2. Si la validación es correcta, guarda en la DB.
-        $this->categoriaModel->save([
-            'nom_categoria' => $this->request->getPost('nom_categoria') // ¡Usamos nom_categoria!
+
+        $nom_categoria = $this->request->getPost('nom_categoria');
+
+        // Guardar en la base de datos
+        $guardado = $this->categoriaModel->save([
+            'nom_categoria' => $nom_categoria,
         ]);
 
-        // 3. Redirige con mensaje de éxito
-        session()->setFlashdata('success', 'Categoría creada exitosamente.');
+        if ($guardado) {
+            $new_id = $this->categoriaModel->insertID();
+
+            // --- NOTIFICACIÓN: NUEVA CATEGORÍA AGREGADA ---
+            $this->notificacionModel->save([
+                'tipo_evento'   => 'nueva_categoria',
+                'mensaje'       => 'Nueva categoría agregada: ' . esc($nom_categoria),
+                'referencia_id' => $new_id,
+            ]);
+            // ------------------------------------------------
+
+            session()->setFlashdata('success', 'Categoría creada exitosamente.');
+        } else {
+            session()->setFlashdata('error', 'Error al guardar la categoría en la base de datos.');
+        }
+
+        // Redirección ya estaba correcta, solo usa setFlashdata
         return redirect()->to(base_url('admin/categorias'));
     }
 
@@ -66,13 +86,13 @@ class CategoriaController extends BaseController // ¡Clase corregida!
     {
         $categoria = $this->categoriaModel->find($id);
 
-        if (!$categoria) {
+        if (! $categoria) {
             session()->setFlashdata('error', 'Categoría no encontrada.');
             return redirect()->to(base_url('admin/categorias'));
         }
 
         return view('admin/categorias/form', [
-            'categoria' => $categoria
+            'categoria' => $categoria,
         ]);
     }
 
@@ -81,23 +101,22 @@ class CategoriaController extends BaseController // ¡Clase corregida!
      */
     public function actualizar($id = null)
     {
-        // 1. Validar los datos del formulario
-        if (! $this->validate($this->categoriaModel->validationRules))
-        {
-            // Si falla la validación, regresa al formulario con errores y datos antiguos
+        // Validar los datos
+        if (! $this->validate($this->categoriaModel->validationRules ?? [
+            'nom_categoria' => 'required|min_length[3]|max_length[50]'
+        ])) {
             return view('admin/categorias/form', [
                 'validation' => $this->validator,
-                // Es importante devolver la categoría actual para que el formulario sepa que está en modo edición
-                'categoria' => $this->categoriaModel->find($id) 
+                'categoria'  => $this->categoriaModel->find($id),
             ]);
         }
-        
-        // 2. Si la validación es correcta, actualiza en la DB.
+
+        // Actualizar registro
         $this->categoriaModel->update($id, [
-            'nom_categoria' => $this->request->getPost('nom_categoria') // ¡Usamos nom_categoria!
+            'nom_categoria' => $this->request->getPost('nom_categoria'),
         ]);
 
-        // 3. Redirige con mensaje de éxito
+        // CORRECCIÓN: Usar setFlashdata y redirección simple
         session()->setFlashdata('success', 'Categoría actualizada exitosamente.');
         return redirect()->to(base_url('admin/categorias'));
     }
@@ -113,6 +132,7 @@ class CategoriaController extends BaseController // ¡Clase corregida!
             session()->setFlashdata('error', 'Error al intentar eliminar la categoría.');
         }
 
+        // Redirección ya estaba correcta
         return redirect()->to(base_url('admin/categorias'));
     }
 }

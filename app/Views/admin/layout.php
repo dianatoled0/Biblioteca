@@ -389,17 +389,6 @@
             </div>
         </aside>
         <div class="main-content-wrapper">
-             <?php if (session()->getFlashdata('success')): ?>
-                <div class="alert alert-success form-group-full" style="padding: 12px; background-color: #10B981; border-radius: 8px; margin-bottom: 24px;">
-                    <?= esc(session()->getFlashdata('success')) ?>
-                </div>
-            <?php endif; ?>
-
-            <?php if (session()->getFlashdata('error')): ?>
-                <div class="alert alert-error form-group-full" style="padding: 12px; background-color: #EF4444; border-radius: 8px; margin-bottom: 24px;">
-                    <?= esc(session()->getFlashdata('error')) ?>
-                </div>
-            <?php endif; ?>
             
             <?= $this->renderSection('contenido') ?>
         </div>

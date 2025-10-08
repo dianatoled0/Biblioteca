@@ -5,27 +5,25 @@ namespace App\Controllers\Adminview;
 use App\Controllers\BaseController;
 use App\Models\UsuarioModel;
 use App\Models\TipoMembresiaModel;
+use App\Models\NotificacionModel; 
 
 class UsuariosController extends BaseController
 {
     protected $usuarioModel;
     protected $membresiaModel;
+    protected $notificacionModel;
 
     public function __construct()
     {
         $this->usuarioModel = new UsuarioModel();
         $this->membresiaModel = new TipoMembresiaModel();
+        $this->notificacionModel = new NotificacionModel();
     }
 
     public function index()
     {
-        // 🚨 CAMBIO CLAVE: Capturar el filtro de rol de la URL
         $filtroRol = $this->request->getGet('filtro_rol');
-        
-        // Cargar los usuarios usando el nuevo método con filtro
         $data['usuarios'] = $this->usuarioModel->getUsuariosConFiltro($filtroRol);
-        
-        // Pasar el filtro a la vista para que el selector permanezca seleccionado
         $data['filtroRol'] = $filtroRol; 
 
         return view('admin/usuarios/index', $data);
@@ -39,7 +37,6 @@ class UsuariosController extends BaseController
 
     public function guardar()
     {
-        // 1. Preparar datos del POST
         $data = [
             'usuario' => $this->request->getPost('usuario'),
             'correo' => $this->request->getPost('correo'),
@@ -53,20 +50,27 @@ class UsuariosController extends BaseController
             'fecha_fin_membresia' => $this->request->getPost('fecha_fin_membresia'),
         ];
 
-        // 2. Aplicar Hash MD5 manualmente (según tu implementación)
         $pass = $this->request->getPost('pass');
         if (!empty($pass)) {
-            // Asegúrate de que el campo 'pass_confirm' coincida si tienes validación
             $data['pass'] = md5($pass); 
         }
 
-        // 3. Intentar insertar y redireccionar
         if ($this->usuarioModel->insert($data)) {
-            // Redirección exitosa a la lista de usuarios (index)
-            return redirect()->to(base_url('admin/usuarios'))->with('success', 'Usuario creado exitosamente. ID: ' . $this->usuarioModel->insertID());
+            
+            $new_id = $this->usuarioModel->insertID();
+            
+            // --- NOTIFICACIÓN: NUEVO USUARIO CREADO ---
+            $this->notificacionModel->save([
+                'tipo_evento'   => 'nuevo_usuario',
+                'mensaje'       => 'Nuevo usuario registrado: ' . esc($data['usuario']) . ' (Rol: ' . esc($data['rol']) . ')',
+                'referencia_id' => $new_id,
+            ]);
+            // --------------------------------------------
+            
+            // CORRECCIÓN: Usar setFlashdata y redirección simple
+            session()->setFlashdata('success', 'Usuario creado exitosamente. ID: ' . $new_id);
+            return redirect()->to(base_url('admin/usuarios'));
         } else {
-            // Manejo de errores (ej: usuario o correo duplicado)
-            // Redirige de vuelta al formulario con los errores y los datos anteriores
             return redirect()->back()->withInput()->with('errors', $this->usuarioModel->errors());
         }
     }
@@ -75,7 +79,9 @@ class UsuariosController extends BaseController
     {
         $data['usuario'] = $this->usuarioModel->find($id);
         if (empty($data['usuario'])) {
-            return redirect()->to(base_url('admin/usuarios'))->with('error', 'Usuario no encontrado');
+            // CORRECCIÓN: Usar setFlashdata y redirección simple
+            session()->setFlashdata('error', 'Usuario no encontrado');
+            return redirect()->to(base_url('admin/usuarios'));
         }
         $data['membresias'] = $this->membresiaModel->findAll();
         return view('admin/usuarios/form', $data);
@@ -83,6 +89,13 @@ class UsuariosController extends BaseController
 
     public function actualizar($id)
     {
+        $data_actual = $this->usuarioModel->find($id); 
+        if (empty($data_actual)) {
+            // CORRECCIÓN: Usar setFlashdata y redirección simple
+            session()->setFlashdata('error', 'Usuario no encontrado para actualizar.');
+            return redirect()->to(base_url('admin/usuarios'));
+        }
+
         $data = [
             'usuario' => $this->request->getPost('usuario'),
             'correo' => $this->request->getPost('correo'),
@@ -97,11 +110,33 @@ class UsuariosController extends BaseController
 
         $pass = $this->request->getPost('pass');
         if (!empty($pass)) {
-            $data['pass'] = md5($pass); // Hash manual
+            $data['pass'] = md5($pass); 
         }
+        
+        // Verificar si la membresía ha cambiado
+        $membresia_cambiada = (isset($data_actual['id_membresia']) && $data_actual['id_membresia'] != $data['id_membresia']);
+
 
         if ($this->usuarioModel->update($id, $data)) {
-            return redirect()->to(base_url('admin/usuarios'))->with('success', 'Usuario actualizado correctamente');
+            
+            // --- NOTIFICACIÓN: USUARIO ACTUALIZADO (Membresía) ---
+            if ($membresia_cambiada) {
+                $membresia_actual = $this->membresiaModel->find($data['id_membresia']);
+                $nombre_membresia = $membresia_actual['nombre'] ?? 'Desconocida';
+                
+                $mensaje = 'Membresía del usuario ' . esc($data['usuario']) . ' actualizada a: ' . esc($nombre_membresia);
+                
+                $this->notificacionModel->save([
+                    'tipo_evento'   => 'usuario_membresia_act',
+                    'mensaje'       => $mensaje,
+                    'referencia_id' => $id,
+                ]);
+            }
+            // --------------------------------------------
+            
+            // CORRECCIÓN: Usar setFlashdata y redirección simple
+            session()->setFlashdata('success', 'Usuario actualizado correctamente');
+            return redirect()->to(base_url('admin/usuarios'));
         } else {
             return redirect()->back()->withInput()->with('errors', $this->usuarioModel->errors());
         }
@@ -111,9 +146,14 @@ class UsuariosController extends BaseController
     {
         $usuario = $this->usuarioModel->find($id);
         if (empty($usuario) || $usuario['usuario'] === 'dtoledo') {
-            return redirect()->to(base_url('admin/usuarios'))->with('error', 'No se puede eliminar este usuario.');
+            // CORRECCIÓN: Usar setFlashdata y redirección simple
+            session()->setFlashdata('error', 'No se puede eliminar este usuario.');
+            return redirect()->to(base_url('admin/usuarios'));
         }
         $this->usuarioModel->delete($id);
-        return redirect()->to(base_url('admin/usuarios'))->with('success', 'Usuario eliminado correctamente');
+        
+        // CORRECCIÓN: Usar setFlashdata y redirección simple
+        session()->setFlashdata('success', 'Usuario eliminado correctamente');
+        return redirect()->to(base_url('admin/usuarios'));
     }
 }

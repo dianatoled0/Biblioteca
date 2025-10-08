@@ -70,7 +70,7 @@
             <?php foreach ($registros as $p): ?>
             <tr>
                 <td>#<?= esc($p['id']) ?></td>
-                <td><?= esc($p['nombre'] . ' ' . $p['apellido']) ?> (ID: <?= esc($p['id_user']) ?>)</td>
+                <td><?= esc(($p['nombre'] ?? 'N/A') . ' ' . ($p['apellido'] ?? '')) ?> (ID: <?= esc($p['id_user']) ?>)</td>
                 <td><?= esc($p['fecha_pedido']) ?></td>
                 <td>Q <?= number_format($p['monto_total'] ?? 0, 2) ?></td>
                 <td><?= esc($p['estado_pedido']) ?></td>

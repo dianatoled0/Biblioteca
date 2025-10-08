@@ -35,7 +35,9 @@ class PedidoModel extends Model
     public function getPedidosConUsuario($membresiaId = null)
     {
         $builder = $this->db->table('pedidos p')
-                            ->select('p.*, u.nombre AS nom_cliente, u.apellido AS ape_cliente, tm.nombre AS nom_membresia, tm.id AS id_membresia')
+                            // ¡CAMBIO CLAVE AQUÍ!
+                            // Se cambiaron los alias a 'nombre' y 'apellido' para que coincida con la vista.
+                            ->select('p.*, u.nombre, u.apellido, tm.nombre AS nom_membresia, tm.id AS id_membresia')
                             ->join('usuarios u', 'u.id = p.id_user')
                             // El join es a u.id_membresia, pero la membresía aplica al usuario.
                             ->join('tipos_membresia tm', 'tm.id = u.id_membresia') 
