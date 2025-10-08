@@ -19,18 +19,20 @@ class TipoMembresiaModel extends Model
         'nombre',
         'precio',
         'duracion_meses',
-        'descuento_porcentaje', // Nuevo
-        'envio_gratis_monto_minimo', // Nuevo
-        'costo_envio_fijo', // Nuevo
+        'descuento_porcentaje', 
+        'envio_gratis_monto_minimo', 
+        'costo_envio_fijo', 
     ];
 
     /**
      * Obtiene todas las membresías, incluyendo su duración.
+     * Se usa para el dropdown del filtro.
      * @return array
      */
     public function getAllMembresias(): array
     {
-        return $this->select('id, nombre, duracion_meses')->findAll();
+        // CORRECCIÓN: Se agrega 'descuento_porcentaje' para el dropdown del filtro.
+        return $this->select('id, nombre, duracion_meses, descuento_porcentaje')->findAll();
     }
 
     /**
@@ -40,9 +42,9 @@ class TipoMembresiaModel extends Model
      */
     public function getReglasMembresia(int $idMembresia): ?array
     {
-        // 🚨 Refinamiento clave: Solo selecciona los campos que el CarritoController necesita.
+        // Refinamiento clave: Solo selecciona los campos que el CarritoController necesita.
         $reglas = $this->select('descuento_porcentaje, envio_gratis_monto_minimo, costo_envio_fijo')
-                       ->find($idMembresia);
+                        ->find($idMembresia);
         
         if ($reglas === null || $reglas === false) {
             log_message('debug', "Membresía ID: $idMembresia no encontrada para calcular reglas.");
