@@ -27,7 +27,7 @@ class Admin extends BaseController
     public function index()
     {
         // 1. Obtener las notificaciones para el panel de historial
-        $notificaciones = $this->notificacionModel->getLatestNotifications(50); 
+        $notificaciones = $this->notificacionModel->getLatestNotifications(5); 
         
         // 2. Obtener las últimas órdenes realizadas para la tabla (ej. 4 órdenes)
         $ordenes = $this->pedidoModel->orderBy('fecha_pedido', 'DESC')->findAll(4); 
